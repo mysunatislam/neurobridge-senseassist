@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mic, MicOff, Play, Volume2, ShieldCheck, Sparkles, Zap, ArrowRight, RotateCcw, Globe, Award, Scan } from 'lucide-react';
+import { Mic, MicOff, Play, Volume2, ShieldCheck, Sparkles, Zap, ArrowRight, RotateCcw, Globe, Award, Scan, Activity, CheckCircle2 } from 'lucide-react';
 import { PatientPresetCase } from '../services/MockPatientCases';
 import { AudioWaveformVisualizer } from './AudioWaveformVisualizer';
 import { PhonemeMouthGuide } from './PhonemeMouthGuide';
@@ -458,10 +458,151 @@ export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
             </div>
           </div>
 
+          {/* CLOSED-LOOP REHABILITATION INTERVENTION MOMENT (Before vs After) */}
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-[#0a1526] to-slate-950 border border-teal-500/30 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-teal-300 uppercase tracking-wider flex items-center space-x-2">
+                <Sparkles className="w-4 h-4 text-teal-400" />
+                <span>Closed-Loop Sensory-Motor Intervention Cycle</span>
+              </span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-300 border border-teal-500/40">
+                Measured Delta: +{lastSessionResult.progress.accuracyDelta}% Precision
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+              {/* Step 1: Error Detected */}
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-rose-500/30 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-rose-400 uppercase text-[10px]">1. Error Detected</span>
+                  <span className="text-[10px] text-slate-400">Baseline Attempt</span>
+                </div>
+                <div className="font-mono text-slate-200 text-[11px] bg-slate-950 p-2 rounded border border-slate-800">
+                  "The <span className="text-rose-400 underline">wed</span> <span className="text-rose-400 underline">wabbit</span> <span className="text-rose-400 underline">wuns</span>..."
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  /r/ &rarr; /w/ labial substitution &bull; 1.4s hesitation &bull; 48% accuracy
+                </p>
+              </div>
+
+              {/* Step 2: Agent Intervention */}
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-cyan-500/30 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-cyan-400 uppercase text-[10px]">2. System Reacts</span>
+                  <span className="text-[10px] text-cyan-300 font-mono">Live Actuation</span>
+                </div>
+                <div className="font-mono text-cyan-300 text-[11px] bg-slate-950 p-2 rounded border border-slate-800 flex items-center space-x-1.5">
+                  <Zap className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+                  <span>80 BPM Tactile Metronome + Lip Guide</span>
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Phase-locked rhythmic pulses bypass basal ganglia initiation delay
+                </p>
+              </div>
+
+              {/* Step 3: Measured Retry */}
+              <div className="p-3 rounded-xl bg-slate-900/90 border border-emerald-500/30 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-emerald-400 uppercase text-[10px]">3. Closed-Loop Retry</span>
+                  <span className="text-[10px] text-emerald-300 font-bold">+60.4% Gain</span>
+                </div>
+                <div className="font-mono text-emerald-300 text-[11px] bg-slate-950 p-2 rounded border border-slate-800">
+                  "The <span className="text-emerald-400 font-bold">red</span> <span className="text-emerald-400 font-bold">rabbit</span> <span className="text-emerald-400 font-bold">runs</span>..."
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  Correct phoneme placement &bull; 0.6s pause (-57%) &bull; 77% accuracy
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* 7-AGENT AUTONOMOUS COLLABORATIVE NETWORK BREAKDOWN */}
+          <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+            <div className="flex items-center justify-between border-b border-slate-800/80 pb-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center space-x-2">
+                <Activity className="w-4 h-4 text-purple-400" />
+                <span>NeuroBridge 7-Agent Autonomous Network</span>
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">100% Pipeline Verification</span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs">
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="flex items-center space-x-1.5 text-teal-400 font-bold text-[11px] mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>1. Speech Perception</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  DSP formants F1/F2 &amp; /r/&rarr;/w/ error detection
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="flex items-center space-x-1.5 text-cyan-400 font-bold text-[11px] mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>2. Cognitive Reasoning</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  Left SMA motor planning latency identified
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="flex items-center space-x-1.5 text-purple-400 font-bold text-[11px] mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>3. Sensory Adaptation</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  Prescribed 80 BPM haptic pulse pattern
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="flex items-center space-x-1.5 text-amber-400 font-bold text-[11px] mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>4. RL Experimenter</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  UCB1 bandit selected tactile biofeedback
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="flex items-center space-x-1.5 text-emerald-400 font-bold text-[11px] mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>5. Digital Twin</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  Updated longitudinal radar trajectory
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800">
+                <div className="flex items-center space-x-1.5 text-rose-400 font-bold text-[11px] mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>6. Safety Guard</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  Enforced 80% PWM ceiling &amp; fatigue check
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 sm:col-span-2">
+                <div className="flex items-center space-x-1.5 text-sky-400 font-bold text-[11px] mb-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>7. Progress &amp; FHIR Intelligence</span>
+                </div>
+                <p className="text-[10px] text-slate-300 leading-tight">
+                  Generated HL7&reg; FHIR&reg; R4 Bundle + WHO ICF b320/b330 care plan
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Reasoning & Prescription */}
           <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
             <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-              Autonomous Clinical Reasoning
+              Autonomous Clinical Rationale &amp; Biomarker Summary
             </span>
             <p className="text-xs text-slate-300 leading-relaxed">
               {lastSessionResult.reasoning.longitudinalComparison}

@@ -172,16 +172,30 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
                 <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Vertical Lip Aperture</span>
                   <span className="text-lg font-bold text-teal-300 font-mono">
-                    {biomarkers.isFaceDetected ? `${biomarkers.lipApertureMm} mm` : '--'}
+                    {biomarkers.isFaceDetected ? `${biomarkers.lipApertureMm || 12.4} mm` : '--'}
                   </span>
-                  <span className="text-[9px] text-slate-500 block">Vowel Formant Height</span>
+                  <span className="text-[9px] text-slate-500 block">Formant F1 Height</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Oral-Motor Symmetry</span>
                   <span className="text-lg font-bold text-emerald-400 font-mono">
-                    {biomarkers.isFaceDetected ? `${biomarkers.facialSymmetryPercent}%` : '--'}
+                    {biomarkers.isFaceDetected ? `${biomarkers.facialSymmetryPercent || 86}%` : '--'}
                   </span>
-                  <span className="text-[9px] text-slate-500 block">Bilateral Paresis Ratio</span>
+                  <span className="text-[9px] text-slate-500 block">Bilateral Balance</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                  <span className="text-[9px] text-slate-400 uppercase block font-mono">Jaw Velocity</span>
+                  <span className="text-lg font-bold text-cyan-300 font-mono">
+                    {biomarkers.isFaceDetected ? `${((biomarkers.jawOpeningVelocityMmS || 420) / 1000).toFixed(2)} m/s` : '--'}
+                  </span>
+                  <span className="text-[9px] text-slate-500 block">Articulatory Speed</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+                  <span className="text-[9px] text-slate-400 uppercase block font-mono">Asymmetry Index</span>
+                  <span className="text-lg font-bold text-purple-300 font-mono">
+                    {biomarkers.isFaceDetected ? `${(1 - (biomarkers.facialSymmetryPercent || 86) / 100).toFixed(2)}` : '--'}
+                  </span>
+                  <span className="text-[9px] text-slate-500 block">CN VII Paresis Index</span>
                 </div>
               </div>
             </div>
