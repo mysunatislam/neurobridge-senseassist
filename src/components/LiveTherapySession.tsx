@@ -1,0 +1,477 @@
+import React, { useState } from 'react';
+import { Mic, MicOff, Play, Volume2, ShieldCheck, Sparkles, Zap, ArrowRight, RotateCcw, Globe, Award, Scan } from 'lucide-react';
+import { PatientPresetCase } from '../services/MockPatientCases';
+import { AudioWaveformVisualizer } from './AudioWaveformVisualizer';
+import { PhonemeMouthGuide } from './PhonemeMouthGuide';
+import { VisionKinematicsTracker } from './VisionKinematicsTracker';
+import { SessionRunResult, AgentTraceEvent } from '../agents/types';
+import { AudioAnalyzer } from '../services/AudioAnalyzer';
+import { HapticPacket } from '../services/HapticController';
+import { ActuationGateDecision } from '../services/ActuationSafetyGate';
+import { AgentOrchestrator } from '../agents/AgentOrchestrator';
+import { GlobalLanguageConfig } from '../services/GlobalLanguageService';
+
+interface LiveTherapySessionProps {
+  selectedPatient: PatientPresetCase;
+  selectedLanguage: GlobalLanguageConfig;
+  audioAnalyzer: AudioAnalyzer;
+  agentOrchestrator: AgentOrchestrator;
+  lastSessionResult: SessionRunResult | null;
+  setLastSessionResult: (result: SessionRunResult) => void;
+  onTrialStarted: () => void;
+  onNavigateToTrace: () => void;
+  isPacingActive: boolean;
+  onRequestPacing: (packet: HapticPacket) => ActuationGateDecision;
+  onStopPacing: () => void;
+  actuationDecision: ActuationGateDecision;
+  currentBeat: number;
+}
+
+export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
+  selectedPatient,
+  selectedLanguage,
+  audioAnalyzer,
+  agentOrchestrator,
+  lastSessionResult,
+  setLastSessionResult,
+  onTrialStarted,
+  onNavigateToTrace,
+  isPacingActive,
+  onRequestPacing,
+  onStopPacing,
+  actuationDecision,
+  currentBeat
+}) => {
+  const [targetPhrase, setTargetPhrase] = useState(selectedLanguage.defaultPhrase);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isRunningAgents, setIsRunningAgents] = useState(false);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [streamingTrace, setStreamingTrace] = useState<AgentTraceEvent[]>([]);
+  const [frequencyData, setFrequencyData] = useState<Uint8Array | undefined>(undefined);
+  const [rmsDb, setRmsDb] = useState(-55);
+  const [inputMode, setInputMode] = useState<'preset' | 'mic'>('preset');
+
+  // Sync target phrase when language or patient changes
+  React.useEffect(() => {
+    setTargetPhrase(selectedLanguage.defaultPhrase);
+  }, [selectedLanguage, selectedPatient]);
+
+  const handleToggleRecording = async () => {
+    if (isRecording) {
+      // Stop recording
+      setIsRecording(false);
+      setIsRunningAgents(true);
+      setStreamingTrace([]);
+      const audioResult = await audioAnalyzer.stopRecording(targetPhrase);
+
+      // Run 7-agent cycle — each agent pushes its card into the streaming trace live
+      const result = await agentOrchestrator.executeSessionCycle(
+        targetPhrase,
+        audioResult.transcript,
+        audioResult.durationSec,
+        audioResult.pauses,
+        audioResult.pitchSamples,
+        audioResult.rmsDb,
+        selectedPatient.digitalTwin,
+        (event, stepIdx) => {
+          setCurrentStepIndex(stepIdx);
+          setStreamingTrace(prev => [...prev, event]);
+        }
+      );
+
+      setLastSessionResult(result);
+      setIsRunningAgents(false);
+      setStreamingTrace([]);
+    } else {
+      // Start recording
+      onTrialStarted();
+      setIsRecording(true);
+      await audioAnalyzer.startRecording((freqData, db) => {
+        setFrequencyData(new Uint8Array(freqData));
+        setRmsDb(db);
+      });
+    }
+  };
+
+  const handleRunPresetSimulation = async () => {
+    onTrialStarted();
+    setIsRunningAgents(true);
+    setCurrentStepIndex(1);
+    setStreamingTrace([]);
+
+    const presetAudio = audioAnalyzer.simulatePresetCase({
+      transcript: selectedLanguage.sampleSpoken,
+      durationSec: selectedPatient.audioDurationSec,
+      pauses: selectedPatient.detectedPauses,
+      pitchSamples: selectedPatient.pitchSamples,
+      rmsDb: selectedPatient.rmsEnergyDb
+    });
+
+    const result = await agentOrchestrator.executeSessionCycle(
+      targetPhrase,
+      presetAudio.transcript,
+      presetAudio.durationSec,
+      presetAudio.pauses,
+      presetAudio.pitchSamples,
+      presetAudio.rmsDb,
+      selectedPatient.digitalTwin,
+      (event, stepIdx) => {
+        setCurrentStepIndex(stepIdx);
+        setStreamingTrace(prev => [...prev, event]);
+      }
+    );
+
+    setLastSessionResult(result);
+    setIsRunningAgents(false);
+    setStreamingTrace([]);
+  };
+
+  const handleTogglePacing = () => {
+    if (isPacingActive) {
+      onStopPacing();
+    } else {
+      const bpm = lastSessionResult?.intervention.bpm || selectedPatient.digitalTwin.preferredBpm;
+      const pattern = lastSessionResult?.intervention.hapticPattern || '1-2-3-4';
+      const intensity = lastSessionResult?.intervention.hapticIntensityPercent || 65;
+
+      onRequestPacing({
+        bpm,
+        pattern,
+        intensity,
+        durationMs: 120,
+        active: true
+      });
+    }
+  };
+
+  const activeIntervention = lastSessionResult?.intervention;
+
+  return (
+    <div className="space-y-6">
+      {/* Top Clinical Context Banner */}
+      <div className="rounded-2xl border border-slate-800 bg-gradient-to-r from-slate-900 via-[#0c1527] to-slate-900 p-5 shadow-xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center space-x-3">
+              <h2 className="text-xl font-bold text-white tracking-tight">
+                {selectedPatient.name}
+              </h2>
+              <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/40">
+                Session #{selectedPatient.digitalTwin.sessionsCompleted + 1}
+              </span>
+              <span className="text-xs text-cyan-400 font-mono flex items-center space-x-1">
+                <span>{selectedLanguage.flag}</span>
+                <span>{selectedLanguage.name}</span>
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mt-1">
+              <strong>Condition:</strong> {selectedPatient.condition}
+            </p>
+            <div className="flex items-center space-x-3 mt-1 text-[11px] text-teal-400 font-mono">
+              <span>{selectedLanguage.icfCode}</span>
+              <span>&bull;</span>
+              <span>ICD-11: MB46</span>
+              <span>&bull;</span>
+              <span className="text-cyan-300">MediaPipe Computer Vision Active</span>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2.5">
+            <button
+              onClick={handleRunPresetSimulation}
+              disabled={isRunningAgents}
+              className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:scale-105 transition-all disabled:opacity-50"
+              title="Execute Complete 90-Second Multimodal Closed Loop"
+            >
+              <Play className="w-4 h-4 fill-current" />
+              <span>{isRunningAgents ? 'Running 7 Agents...' : 'Run 90s Judge Demo'}</span>
+            </button>
+
+            <button
+              onClick={handleTogglePacing}
+              disabled={!isPacingActive && !actuationDecision.permitted}
+              title={actuationDecision.reason}
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl font-semibold text-xs transition-all shadow-lg ${
+                isPacingActive
+                  ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-pink-500/30 animate-pulse'
+                  : 'bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+            >
+              <Zap className="w-4 h-4" />
+              <span>{isPacingActive ? 'Pacing (Stop)' : 'Start Pacer'}</span>
+            </button>
+          </div>
+        </div>
+        <div className={`text-[11px] font-mono ${actuationDecision.permitted ? 'text-emerald-400' : 'text-amber-400'}`}>
+          Actuator gate: {actuationDecision.permitted ? `${actuationDecision.mode} clearance` : actuationDecision.reason}
+        </div>
+      </div>
+
+      {/* Target Phrase Box */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-bold uppercase tracking-wider text-teal-400 flex items-center space-x-1.5">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Therapeutic Target Utterance ({selectedLanguage.nativeName})</span>
+          </span>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => {
+                const utterance = new SpeechSynthesisUtterance(targetPhrase);
+                utterance.lang = selectedLanguage.code;
+                utterance.rate = 0.85;
+                window.speechSynthesis.speak(utterance);
+              }}
+              className="flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 transition-colors"
+            >
+              <Volume2 className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Hear Pronunciation</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="relative">
+          <input
+            type="text"
+            value={targetPhrase}
+            onChange={(e) => setTargetPhrase(e.target.value)}
+            className="w-full text-xl sm:text-2xl font-bold bg-slate-950/80 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-teal-500 transition-colors"
+          />
+        </div>
+
+        {/* Global IPA Phonemic Targets Highlight Bar */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-xs text-slate-400">Target IPA Phonemes:</span>
+          {selectedLanguage.targetPhonemes.map((ph, idx) => (
+            <span
+              key={ph}
+              className="px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-300 text-xs font-mono font-bold border border-teal-500/30"
+            >
+              {ph} <span className="text-slate-400 font-normal">{selectedLanguage.ipaPhonemes[idx]}</span>
+            </span>
+          ))}
+          <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 text-xs font-mono font-bold border border-purple-500/30">
+            Cadence: {selectedPatient.digitalTwin.preferredBpm} BPM
+          </span>
+        </div>
+      </div>
+
+      {/* MediaPipe Computer Vision Kinematics Tracker */}
+      <VisionKinematicsTracker />
+
+      {/* Sensory Guidance Component (Mouth Guide + Beat Synchronizer) */}
+      <PhonemeMouthGuide
+        targetPhoneme={activeIntervention?.targetPhonemeFocus || selectedLanguage.targetPhonemes[0]}
+        visualCueType={activeIntervention?.visualCueType || 'mouth_shape'}
+        bpm={activeIntervention?.bpm || selectedPatient.digitalTwin.preferredBpm}
+        currentBeat={currentBeat}
+      />
+
+      {/* Audio Capture & Trigger Studio */}
+      <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <h3 className="text-base font-bold text-white">Speech Acoustic Ingestion</h3>
+            <div className="flex rounded-lg bg-slate-950 p-0.5 border border-slate-800">
+              <button
+                onClick={() => setInputMode('preset')}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                  inputMode === 'preset' ? 'bg-teal-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Case Audio ({selectedLanguage.nativeName})
+              </button>
+              <button
+                onClick={() => setInputMode('mic')}
+                className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                  inputMode === 'mic' ? 'bg-teal-500 text-slate-950 font-semibold' : 'text-slate-400 hover:text-slate-200'
+                }`}
+              >
+                Live Microphone
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Live Audio Visualizer */}
+        <AudioWaveformVisualizer
+          isRecording={isRecording}
+          rmsDb={rmsDb}
+          frequencyData={frequencyData}
+          pauses={lastSessionResult?.biomarkers.pauseCount ? [{ start: 0.8, duration: 1.2 }] : []}
+        />
+
+        {/* Action Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
+          {inputMode === 'mic' ? (
+            <button
+              onClick={handleToggleRecording}
+              disabled={isRunningAgents}
+              className={`flex items-center space-x-2.5 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-lg ${
+                isRecording
+                  ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/40 animate-pulse'
+                  : 'bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 shadow-teal-500/30'
+              }`}
+            >
+              {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              <span>{isRecording ? 'Stop & Reason' : 'Record Live Speech'}</span>
+            </button>
+          ) : (
+            <button
+              onClick={handleRunPresetSimulation}
+              disabled={isRunningAgents}
+              className="flex items-center space-x-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-400 hover:to-cyan-400 text-slate-950 font-bold text-sm transition-all shadow-lg shadow-teal-500/30 disabled:opacity-50"
+            >
+              <Play className="w-5 h-5 fill-current" />
+              <span>
+                {isRunningAgents ? 'Executing 7 Autonomous Agents...' : `Simulate Trial (${selectedLanguage.nativeName})`}
+              </span>
+            </button>
+          )}
+
+          {lastSessionResult && (
+            <button
+              onClick={onNavigateToTrace}
+              className="flex items-center space-x-2 text-xs font-semibold text-teal-400 hover:text-teal-300 transition-colors"
+            >
+              <span>Inspect Full Agent Trace Graph</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        {/* ===== LIVE STREAMING AGENT TRACE ===== */}
+        {isRunningAgents && (
+          <div className="p-4 rounded-xl bg-slate-950/90 border border-teal-500/40 space-y-3 animate-in fade-in">
+            <div className="flex items-center justify-between text-xs">
+              <span className="flex items-center space-x-2 text-teal-300 font-bold">
+                <Sparkles className="w-3.5 h-3.5 animate-spin text-teal-400" />
+                <span>Autonomous 7-Agent Brain — Live Reasoning</span>
+              </span>
+              <span className="text-slate-400 font-mono">{currentStepIndex}/7 agents</span>
+            </div>
+            {/* Progress bar */}
+            <div className="w-full h-1 rounded-full bg-slate-800 overflow-hidden">
+              <div
+                className="h-1 rounded-full bg-gradient-to-r from-teal-500 to-cyan-400 transition-all duration-500"
+                style={{ width: `${(currentStepIndex / 7) * 100}%` }}
+              />
+            </div>
+            {/* Live agent cards streaming in */}
+            <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
+              {streamingTrace.map((ev, i) => (
+                <div key={ev.agentId} className="flex items-start space-x-2.5 text-xs animate-in fade-in slide-in-from-bottom-2 bg-slate-900/60 rounded-lg p-2 border border-slate-800">
+                  <span className="mt-0.5 w-5 h-5 shrink-0 rounded-full bg-teal-500/20 border border-teal-500/40 flex items-center justify-center text-[9px] font-mono text-teal-400">{i + 1}</span>
+                  <div className="min-w-0">
+                    <div className="flex items-center space-x-1.5 mb-0.5">
+                      <span className="font-bold text-white text-[11px]">{ev.agentName}</span>
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-mono ${ev.badgeColor}`}>{ev.role}</span>
+                    </div>
+                    <p className="text-slate-300 leading-relaxed truncate">{ev.decision}</p>
+                  </div>
+                </div>
+              ))}
+              {/* Pulsing next-agent placeholder */}
+              {currentStepIndex < 7 && (
+                <div className="flex items-center space-x-2.5 text-xs opacity-50 animate-pulse p-2">
+                  <span className="w-5 h-5 shrink-0 rounded-full border border-dashed border-slate-600 flex items-center justify-center text-[9px] text-slate-500">{currentStepIndex + 1}</span>
+                  <span className="text-slate-500 italic">agent reasoning…</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Trial Results Card */}
+      {lastSessionResult && (
+        <div className="rounded-2xl border border-teal-500/40 bg-gradient-to-br from-slate-900 via-[#0a1426] to-slate-900 p-6 shadow-2xl space-y-6 animate-in fade-in">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="text-xs font-bold uppercase tracking-wider text-teal-400">
+                  Trial Execution Complete
+                </span>
+                <span className={`text-xs px-2 py-0.5 rounded-full border flex items-center space-x-1 ${
+                  actuationDecision.permitted
+                    ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                    : 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                }`}>
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  <span>{actuationDecision.permitted ? 'Safety screen completed' : 'Actuation blocked'}</span>
+                </span>
+              </div>
+              <h3 className="text-lg font-bold text-white mt-1">
+                Phenotype: {lastSessionResult.phenotype.primaryDeficit}
+              </h3>
+            </div>
+
+            <button
+              onClick={onNavigateToTrace}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 text-xs font-semibold border border-teal-500/40 transition-colors"
+            >
+              <span>View Agent Trace Brain</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Key Biomarker Metric Tiles */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span className="text-[11px] text-slate-400 font-medium block">Speaking Rate</span>
+              <div className="text-2xl font-bold text-teal-400 mt-1">
+                {lastSessionResult.biomarkers.speakingRateWpm} <span className="text-xs font-normal text-slate-400">WPM</span>
+              </div>
+              <span className="text-[10px] text-emerald-400">
+                +{lastSessionResult.progress.wpmImprovementPercent}% vs Baseline
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span className="text-[11px] text-slate-400 font-medium block">Mean Pause Duration</span>
+              <div className="text-2xl font-bold text-cyan-400 mt-1">
+                {lastSessionResult.biomarkers.meanPauseDurationSec} <span className="text-xs font-normal text-slate-400">sec</span>
+              </div>
+              <span className="text-[10px] text-emerald-400">
+                -{lastSessionResult.progress.pauseReductionPercent}% hesitation
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span className="text-[11px] text-slate-400 font-medium block">Rhythm Stability</span>
+              <div className="text-2xl font-bold text-purple-400 mt-1">
+                {Math.round(lastSessionResult.biomarkers.rhythmStabilityIndex * 100)}%
+              </div>
+              <span className="text-[10px] text-purple-300">
+                Entrained @ {lastSessionResult.intervention.bpm} BPM
+              </span>
+            </div>
+
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span className="text-[11px] text-slate-400 font-medium block">Phonemic Accuracy</span>
+              <div className="text-2xl font-bold text-amber-400 mt-1">
+                {Math.round(lastSessionResult.phenotype.motorPlanningScore * 100)}%
+              </div>
+              <span className="text-[10px] text-amber-300">
+                {lastSessionResult.phenotype.phonemeErrors.length} detected error(s)
+              </span>
+            </div>
+          </div>
+
+          {/* Reasoning & Prescription */}
+          <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
+            <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+              Autonomous Clinical Reasoning
+            </span>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              {lastSessionResult.reasoning.longitudinalComparison}
+            </p>
+            <p className="text-xs text-teal-300 font-medium">
+              <strong>Target Focus:</strong> {lastSessionResult.reasoning.primaryTarget}
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

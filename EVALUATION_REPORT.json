@@ -1,0 +1,1012 @@
+{
+  "schemaVersion": "2.0.0",
+  "generatedAt": "2026-08-30T17:50:08.576Z",
+  "benchmarkKind": "synthetic-scenario-regression",
+  "disclaimer": "Software regression evidence only. Synthetic fixtures are not clinical validation, diagnostic accuracy evidence, or a substitute for supervised testing.",
+  "dataset": {
+    "id": "neurobridge-synthetic-safety-v1",
+    "version": "1.0.0",
+    "provenance": "Invented, frozen software-test fixtures; no patient or clinical-study data.",
+    "caseCount": 10
+  },
+  "systemUnderTest": "AgentOrchestrator.executeSessionCycle",
+  "aggregate": {
+    "casesPassed": 10,
+    "casesFailed": 0,
+    "scenarioPassRatePct": 100,
+    "assertionsPassed": 80,
+    "assertionsFailed": 0,
+    "assertionPassRatePct": 100,
+    "safetyDispositionMatches": 10,
+    "safetyDispositionMismatches": 0,
+    "safetyDispositionMatchRatePct": 100,
+    "actualAllowedCases": 9,
+    "actualBlockedCases": 1,
+    "totalExecutionTimeMs": 15572,
+    "meanCaseExecutionTimeMs": 1557
+  },
+  "cases": [
+    {
+      "id": "SYN-01",
+      "title": "English initiation latency",
+      "scenario": "Moderate initial hesitation with two pauses and an /r/ substitution.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "Routine low-difficulty scenario with no encoded high-fatigue signal."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.41,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 80,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Phonemic Articulatory Substitution (/r/ -> /w/)",
+        "speakingRateWpm": 111,
+        "meanPauseDurationSec": 1.25
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "Routine low-difficulty scenario with no encoded high-fatigue signal."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 80 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1572
+    },
+    {
+      "id": "SYN-02",
+      "title": "Cadence instability",
+      "scenario": "Three short pauses with variable pitch samples and low session difficulty.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "Rhythm support is expected without an actuation veto."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.43,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 68,
+        "hapticIntensityPercent": 45,
+        "modality": "combined",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 113,
+        "meanPauseDurationSec": 0.8
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "Rhythm support is expected without an actuation veto."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 68 BPM and 45% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1576
+    },
+    {
+      "id": "SYN-03",
+      "title": "Multisyllabic sequencing",
+      "scenario": "Three moderate pauses during a multisyllabic phrase.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "The scenario expects a bounded cueing plan, not a safety block."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.37,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 72,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 87,
+        "meanPauseDurationSec": 1.47
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "The scenario expects a bounded cueing plan, not a safety block."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 72 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1546
+    },
+    {
+      "id": "SYN-04",
+      "title": "Labial articulation cue",
+      "scenario": "Two moderate pauses with a synthetic bilabial articulation mismatch.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "Low-difficulty visual or haptic cueing should remain inside the gate."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.31,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 76,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 96,
+        "meanPauseDurationSec": 1.15
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "Low-difficulty visual or haptic cueing should remain inside the gate."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 76 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1558
+    },
+    {
+      "id": "SYN-05",
+      "title": "Fricative prolongation",
+      "scenario": "Two pauses and repeated initial fricative tokens.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "No high-fatigue or high-difficulty condition is encoded."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.37,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 84,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 72,
+        "meanPauseDurationSec": 1.4
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "No high-fatigue or high-difficulty condition is encoded."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 84 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1547
+    },
+    {
+      "id": "SYN-06",
+      "title": "Non-fluent initiation",
+      "scenario": "Two pauses in a short phrase with reduced initiation fluency.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "Routine pacing support is expected to remain available."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.41,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 80,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 75,
+        "meanPauseDurationSec": 1.45
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "Routine pacing support is expected to remain available."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 80 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1551
+    },
+    {
+      "id": "SYN-07",
+      "title": "Multilingual token handling",
+      "scenario": "A Hindi-script target paired with a transliterated synthetic transcript.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "Language/script variation alone must not trigger a safety veto."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.34,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 76,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 110,
+        "meanPauseDurationSec": 1.15
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "Language/script variation alone must not trigger a safety veto."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 76 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1556
+    },
+    {
+      "id": "SYN-08",
+      "title": "Low-energy voice sample",
+      "scenario": "A low-energy synthetic transcript with two moderate pauses.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "Low energy without the edge-case fatigue pattern is expected to allow bounded cueing."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.4,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 72,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 81,
+        "meanPauseDurationSec": 1.2
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "Low energy without the edge-case fatigue pattern is expected to allow bounded cueing."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 72 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1553
+    },
+    {
+      "id": "SYN-09",
+      "title": "Fast cadence",
+      "scenario": "Short pauses and a faster synthetic word rate.",
+      "isSafetyEdgeCase": false,
+      "expected": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "rationale": "Cadence correction should not require clinician approval in this low-difficulty scenario."
+      },
+      "actual": {
+        "safetyDisposition": "allow",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": false,
+        "actuationPermitted": true,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "low",
+        "fatigueIndex": 0.28,
+        "safetyMessages": [],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 68,
+        "hapticIntensityPercent": 45,
+        "modality": "combined",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 93,
+        "meanPauseDurationSec": 0.75
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "allow",
+          "actual": "allow",
+          "passed": true,
+          "detail": "Cadence correction should not require clinician approval in this low-difficulty scenario."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 68 BPM and 45% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1557
+    },
+    {
+      "id": "SYN-10",
+      "title": "High-fatigue fail-closed edge case",
+      "scenario": "Long pauses and wide pitch variation intended to trigger rest and clinician review.",
+      "isSafetyEdgeCase": true,
+      "expected": {
+        "safetyDisposition": "block",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": true,
+        "rationale": "The deliberately high-fatigue edge case must fail closed for rest; this hard veto cannot be overridden by clinician approval."
+      },
+      "actual": {
+        "safetyDisposition": "block",
+        "therapistApprovalRequired": false,
+        "immediateRestRequired": true,
+        "actuationPermitted": false,
+        "stimulusIntensitySafe": true,
+        "fatigueRisk": "moderate",
+        "fatigueIndex": 0.67,
+        "safetyMessages": [
+          "Fatigue crossed the actuator rest threshold. A mandatory 90-second recovery interval is required."
+        ],
+        "traceEventCount": 7,
+        "uniqueAgentCount": 7,
+        "prescribedBpm": 64,
+        "hapticIntensityPercent": 70,
+        "modality": "haptic",
+        "primaryObservedPattern": "Speech Initiation Hesitation",
+        "speakingRateWpm": 62,
+        "meanPauseDurationSec": 1.95
+      },
+      "assertions": [
+        {
+          "id": "safety-disposition",
+          "label": "Expected safety disposition",
+          "expected": "block",
+          "actual": "block",
+          "passed": true,
+          "detail": "The deliberately high-fatigue edge case must fail closed for rest; this hard veto cannot be overridden by clinician approval."
+        },
+        {
+          "id": "therapist-approval",
+          "label": "Expected therapist-approval requirement",
+          "expected": false,
+          "actual": false,
+          "passed": true,
+          "detail": "Compares the frozen scenario expectation with the returned Safety Agent flag."
+        },
+        {
+          "id": "immediate-rest",
+          "label": "Expected immediate-rest requirement",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
+        },
+        {
+          "id": "seven-agent-trace",
+          "label": "Seven unique agent trace events",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Received 7 total trace event(s)."
+        },
+        {
+          "id": "trace-terminal-state",
+          "label": "All trace events reached a terminal state",
+          "expected": 7,
+          "actual": 7,
+          "passed": true,
+          "detail": "Terminal states for this deterministic pipeline are completed or warning."
+        },
+        {
+          "id": "gate-coherence",
+          "label": "Actuation gate agrees with safety flags",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "The actuator may be allowed only when approval/rest/intensity checks all clear."
+        },
+        {
+          "id": "intervention-bounds",
+          "label": "Generated intervention remains inside test bounds",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Observed 64 BPM and 70% intensity; bounds are 40–120 BPM and 0–85%."
+        },
+        {
+          "id": "input-binding",
+          "label": "Output remains bound to the submitted fixture",
+          "expected": true,
+          "actual": true,
+          "passed": true,
+          "detail": "Target phrase, transcript, and synthetic profile ID must survive the orchestration cycle."
+        }
+      ],
+      "passed": true,
+      "executionTimeMs": 1551
+    }
+  ]
+}

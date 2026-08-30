@@ -1,0 +1,127 @@
+{
+  "artifactType": "synthetic_runtime_fixture",
+  "schemaVersion": "1.0.0",
+  "notADevelopmentTrace": true,
+  "description": "Illustrative application-runtime telemetry for one synthetic patient case. It demonstrates the intended seven-stage UI trace shape; it is not a recording of patient care and not evidence of the coding-agent development process.",
+  "evidenceLimitations": [
+    "Patient identity, telemetry, decisions, tool responses, and execution times are synthetic fixture data.",
+    "Do not use this file to support clinical efficacy, real-device performance, or development-provenance claims.",
+    "The redacted development-agent record is traces/DEVELOPMENT_TRACE.redacted.jsonl and is indexed by traces/TRACE_MANIFEST.json."
+  ],
+  "sessions": [
+  {
+    "session_id": "SES-NB001-2026-08-30-01",
+    "patient_id": "NB-001",
+    "patient_name": "Arthur Vance",
+    "condition": "Post-Stroke Left MCA Infarct",
+    "target_phrase": "The red rabbit runs through the green grass",
+    "audio_telemetry": {
+      "duration_sec": 5.4,
+      "detected_pauses": [
+        { "start": 0.6, "duration": 1.4 },
+        { "start": 3.1, "duration": 1.1 }
+      ],
+      "rms_energy_db": -19.2,
+      "formants_hz": { "f0": 124, "f1": 520, "f2": 1680 },
+      "jitter_percent": 1.85,
+      "shimmer_db": 0.95
+    },
+    "visual_kinematics": {
+      "lip_aperture_mm": 16,
+      "lip_width_mm": 46,
+      "lip_rounding_index": 0.35,
+      "facial_symmetry_pct": 89,
+      "jaw_velocity_mm_s": 78
+    },
+    "agent_trajectories": [
+      {
+        "step": 1,
+        "agent_name": "Speech Perception Agent",
+        "role": "Acoustic, Spectral & Visual Kinematic Biomarker Extraction",
+        "status": "COMPLETED",
+        "observation": "Audio duration 5.4s. Detected 2 pauses totaling 2.5s. Spoken input: 'The ... wed wabbit wuns ... thwoo the gween gwaass'. MediaPipe FaceMesh indicates 89% facial symmetry.",
+        "thought": "Deconstructing acoustic signals into temporal, spectral, and segmental phonemic layers. Detected phonemic substitution /r/ -> /w/ in initial position on target 'rabbit' and 'red' (confidence: 94%). Speaking rate measured at 52 WPM.",
+        "tool_call": {
+          "tool": "AdvancedDspMathEngine.computeAcousticFormants",
+          "args": { "fft_bins": 512, "sample_rate": 44100 },
+          "tool_response": { "f0": 124, "f1": 520, "f2": 1680, "jitter": 1.85, "shimmer": 0.95 }
+        },
+        "decision": "Classified communication phenotype as MODERATE: Phonemic Articulatory Substitution (/r/ -> /w/) + Speech Initiation Hesitation.",
+        "execution_time_ms": 14
+      },
+      {
+        "step": 2,
+        "agent_name": "Neuro-Cognitive Reasoning Agent",
+        "role": "Longitudinal Session Differential & Deficit Layer Phenotyping",
+        "status": "COMPLETED",
+        "observation": "Historical trajectory retrieved for Arthur Vance (5 prior sessions). Baseline session pause: 2.6s, Session 5 pause: 1.3s.",
+        "thought": "Comparing current trial against 5-session longitudinal trajectory. Articulation precision improved from baseline 45% to 68% (+23%). However, initiation latency remains elevated at 1.4s preceding unvoiced fricatives. Lexical word-finding is intact; deficit resides in pre-motor planning.",
+        "decision": "Formulated therapeutic target: Rhythmic Auditory-Haptic Entrainment (RAS) to overcome speech initiation freezing.",
+        "execution_time_ms": 18
+      },
+      {
+        "step": 3,
+        "agent_name": "Sensory-Motor Intelligence Agent",
+        "role": "Multimodal Sensory Adaptation & Hardware Protocol Generator",
+        "status": "COMPLETED",
+        "observation": "Patient Haptic Responsiveness = 0.88, Preferred Cadence = 80 BPM.",
+        "thought": "Synthesizing multi-sensory adaptive intervention. Sub-cortical pacing requires 80 BPM tactile metronomic stimulus to entrain supplementary motor area (SMA). Selecting 1-2-3-4 pulse pattern with 65% PWM intensity and retroflex mouth guide.",
+        "tool_call": {
+          "tool": "HapticController.startPacing",
+          "args": { "bpm": 80, "pattern": "1-2-3-4", "intensity": 65, "durationMs": 120 }
+        },
+        "decision": "Dispatched ESP32 Haptic Protocol: 80 BPM, 65% PWM tactile pulse + visual retroflex tongue posture guide.",
+        "execution_time_ms": 12
+      },
+      {
+        "step": 4,
+        "agent_name": "Therapy Experiment Designer Agent",
+        "role": "A/B Micro-Experimentation & Multi-Armed Bandit RL",
+        "status": "COMPLETED",
+        "observation": "Simulated within-session A/B trial: Condition A (Un-cued Baseline) vs Condition B (Haptic 80 BPM Pacing).",
+        "thought": "Evaluating empirical micro-experiment. Condition B demonstrated Accuracy: 88% vs A: 48%. Pause latency dropped by 62%. Updating Multi-Armed Bandit (UCB1) policy weight for Arm 1 (Tactile ERM).",
+        "tool_call": {
+          "tool": "ReinforcementLearningEngine.updateArmReward",
+          "args": { "arm_id": "arm-haptic", "reward": 1.85 }
+        },
+        "decision": "Arm 1 (Haptic Pacer) selected as winning modality (RL Reward +1.85). Policy weight updated to 48%.",
+        "execution_time_ms": 16
+      },
+      {
+        "step": 5,
+        "agent_name": "Digital Twin Patient Model Agent",
+        "role": "Dynamic Computational Patient Model & Predictive Simulation",
+        "status": "COMPLETED",
+        "observation": "Ingested Session #6 trial outcomes. Articulation: 0.72, Rhythm Stability: 0.65, Initiation Fluency: 0.68.",
+        "thought": "Applying exponential moving average smoothing (alpha=0.25) to patient parameter vector. Responsiveness to haptic cueing increased to 90%. Forward simulation predicts 88 WPM target next session.",
+        "decision": "Updated Digital Twin state vector. Model persisted for Patient NB-001.",
+        "execution_time_ms": 15
+      },
+      {
+        "step": 6,
+        "agent_name": "Safety & Clinical Boundary Agent",
+        "role": "Clinical Boundary Guardrails & Fatigue Monitoring",
+        "status": "COMPLETED",
+        "observation": "Fatigue index calculated at 0.38 (Low Risk). Diagnostic phrasing screened: 0 violations. Haptic intensity 65% <= 85% safe limit.",
+        "thought": "Screening intervention against clinical boundaries. No medical pathology claims detected. Stimulus intensity verified safe.",
+        "decision": "Protocol approved and cleared for autonomous patient actuation.",
+        "execution_time_ms": 9
+      },
+      {
+        "step": 7,
+        "agent_name": "Therapy Optimization & Progress Intelligence Agent",
+        "role": "Quantitative Trajectory & FHIR Health Interoperability Synthesis",
+        "status": "COMPLETED",
+        "observation": "Assessment turnaround: 1.8 minutes (88% reduction vs 18-minute manual baseline).",
+        "thought": "Synthesizing clinical summary report and generating HL7 FHIR Release 4 JSON bundle.",
+        "tool_call": {
+          "tool": "FhirExportService.generateFhirBundle",
+          "args": { "patient_id": "NB-001", "who_icf": ["b320", "b330"] }
+        },
+        "decision": "Generated clinical progress report and HL7 FHIR bundle ready for Electronic Health Record export.",
+        "execution_time_ms": 11
+      }
+    ]
+  }
+  ]
+}

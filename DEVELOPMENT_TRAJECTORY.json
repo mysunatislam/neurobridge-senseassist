@@ -1,0 +1,80 @@
+{
+  "artifactType": "retrospective_development_summary",
+  "schemaVersion": "1.0.0",
+  "notARawTrace": true,
+  "evidenceNotice": "This is a human-readable retrospective index, not a verbatim development-agent trajectory. Model labels and historical validation notes are self-reported. Use traces/TRACE_MANIFEST.json and traces/DEVELOPMENT_TRACE.redacted.jsonl for timestamped prompts, tool activity, feedback, errors, retries, and checkpoints.",
+  "project": "NeuroBridge SenseAssist",
+  "hackathon": "micro1 Frontier Engineering Challenge 2026",
+  "category": "Agentic Workflows ($10,000 Grand Prize)",
+  "submissionDate": "2026-08-30T10:30:00Z",
+  "provenanceDisclosure": {
+    "preExistingArtifacts": "No project files were visible at the first preserved workspace listing. The source transcript begins with a truncation checkpoint, so this statement is intentionally limited and does not claim proof about activity before the retained trace window.",
+    "hackathonBuiltComponents": [
+      "7-Agent Autonomous Clinical Orchestrator (Perception, Reasoning, Sensory, RL Experimenter, Digital Twin, Safety Guard, Progress)",
+      "Direct DSP Formant Decomposition Engine (F1/F2 Formants, Vowel Space Area, Jitter & Shimmer Perturbation)",
+      "PulseSight Contactless rPPG Webcam Vitals Service (MediaPipe FaceMesh ROI + Plane-Orthogonal-to-Skin POS Algorithm)",
+      "FingerSpeak TensorFlow.js BiGRU Gesture AAC with 3-2-1 Calibration & Dwell Gating",
+      "Asha Autonomous Hands-Free Clinical Voice Co-Pilot with Live Context Injection",
+      "Deterministic 10-Case Multimodal Benchmark Evaluation Harness & Runner",
+      "ESP32 BLE Haptic Wearable Open Firmware with Hardware Watchdog & Safety Clamps",
+      "HL7 FHIR Release 4 & WHO ICF b310/b320/b330 Interoperability Exporter",
+      "Clinical Defense Studio with 6 Stress-Test Vulnerability Breakdowns"
+    ]
+  },
+  "developmentTrajectories": [
+    {
+      "iteration": 1,
+      "objective": "Architecture & 7-Agent Closed Loop Foundation",
+      "model": "Gemini 3.7 Flash & Claude Sonnet 4.6",
+      "toolsUsed": ["write_to_file", "view_file", "run_command"],
+      "keyDecisions": [
+        "Architected sequential closed-loop pipeline in AgentOrchestrator.ts",
+        "Created formal typed interfaces for AcousticBiomarkers, CommunicationPhenotype, SensoryIntervention, and SafetyGuardResult in types.ts",
+        "Implemented UCB1 Multi-Armed Bandit algorithm in ExperimentDesignerAgent.ts"
+      ],
+      "validationCheck": "Retrospective note: TypeScript compilation was reported as passing and mock simulations were exercised. Re-run the current verification commands before submission."
+    },
+    {
+      "iteration": 2,
+      "objective": "Real-Time Computer Vision & Multimodal Perception",
+      "model": "Gemini 3.7 Flash",
+      "toolsUsed": ["view_file", "replace_file_content", "run_command"],
+      "keyDecisions": [
+        "Integrated @mediapipe/tasks-vision FaceLandmarker and HandLandmarker in browser",
+        "Replaced canvas placeholders with real mirrored video rendering & anatomical reticles (lip contour, eye-aspect ratio, aperture caliper)",
+        "Added Plane-Orthogonal-to-Skin (POS) rPPG algorithm in PulseSightLiveView.tsx extracting forehead and cheek ROI color channels",
+        "Implemented FingerSpeak TF.js BiGRU AAC with 6 calibrated stroke gesture targets"
+      ],
+      "validationCheck": "Retrospective implementation note. No preserved calibrated frame-rate measurement is claimed by this summary."
+    },
+    {
+      "iteration": 3,
+      "objective": "Physiological Signal Tuning & Voice Assistant Re-engineering",
+      "model": "Gemini 3.7 Flash & Claude Sonnet 4.6",
+      "toolsUsed": ["view_file", "replace_file_content", "run_command"],
+      "keyDecisions": [
+        "Corrected rPPG HR search window to 55–125 BPM to eliminate low-frequency drift pulling readings down",
+        "Fixed HRV RMSSD calculation from wall-clock interval artifact to normative adult resting bounds (25–55 ms)",
+        "Gated breathing rate with SNR >= 2.5 and physiological bounds (10–26 br/min)",
+        "Renamed voice assistant to Asha and wired live session context (WPM, DSI, HR, Pacer BPM) into VoiceAssistantService"
+      ],
+      "validationCheck": "Retrospective implementation note. No comparison against a reference medical device or clinical validation dataset is claimed."
+    },
+    {
+      "iteration": 4,
+      "objective": "Credibility, Deterministic Evaluation Harness & Fail-Closed Safety Gate",
+      "model": "Gemini 3.7 Flash",
+      "toolsUsed": ["write_to_file", "replace_file_content", "run_command"],
+      "keyDecisions": [
+        "Created benchmarkRunner.ts with 10 standardized frozen cases and seed 42819",
+        "Rewrote evaluations/run_benchmark.js to generate verified canonical EVALUATION_REPORT.json",
+        "Connected Micro1EvaluationSuite.tsx to execute real multi-agent benchmark in-browser on click",
+        "Enforced strict fail-closed safety gate: high fatigue (>0.65) or boundary violation strictly blocks actuation (actuationPermitted = false)",
+        "Added ESP32 firmware watchdog timer (3000ms timeout) and independent 80% intensity hardware clamp",
+        "Organized header navigation to eliminate horizontal scroll, added mobile navigation bar, and added persistent research prototype banner",
+        "Corrected all regulatory, privacy (plaintext localStorage disclosure), and citation references (Sutton & Barto 2018 MIT Press)"
+      ],
+      "validationCheck": "Retrospective historical run note. The submission must use freshly generated test, build, and benchmark outputs from the current source revision; synthetic proxy metrics are not clinical validation."
+    }
+  ]
+}

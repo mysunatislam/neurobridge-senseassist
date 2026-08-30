@@ -1,0 +1,97 @@
+{
+  "schemaVersion": "1.0.0",
+  "generatedAtUtc": "2026-08-30T17:35:15Z",
+  "project": "NeuroBridge SenseAssist",
+  "purpose": "Index submission evidence while separating authentic development provenance, synthetic application-runtime telemetry, and retrospective narrative.",
+  "developmentTrace": {
+    "platform": "Google Antigravity",
+    "sourceConversationRefSha256": "1fadbfac47790e19cf4e41068f636b70665d29022371c9c3757ab2ff8cab74be",
+    "sourceSnapshot": {
+      "role": "Antigravity system-generated transcript snapshot retained outside the repository",
+      "relativeSourceLocator": ".system_generated/logs/transcript.jsonl",
+      "sha256": "173155e5907543556ecfd454e20dbb07b69cdd725dc1bc3ade69e098cccc993c",
+      "bytes": 1562010,
+      "eventCount": 1129,
+      "firstEventUtc": "2026-08-29T17:59:45.0000000Z",
+      "lastEventUtc": "2026-08-30T05:02:36.0000000Z",
+      "submissionStatus": "excluded-private-source",
+      "exclusionReason": "The untouched system transcript can contain workstation paths, uploaded-media locations, personal information, signed URLs, or credentials. Its digest and metadata are retained so the reviewed derivative can be tied to the source snapshot without publishing the raw file."
+    },
+    "redactedDerivative": {
+      "path": "traces/DEVELOPMENT_TRACE.redacted.jsonl",
+      "schema": "traces/TRACE_SCHEMA.json",
+      "sha256": "42f317da057fd55afcc4f21dc9ac5b92ffdbe8a38e44c700fcaef443bb2cfe04",
+      "bytes": 1223304,
+      "eventCount": 1129,
+      "coverage": [
+        "explicit user instructions and feedback",
+        "model planning responses",
+        "tool and command results",
+        "system checkpoints",
+        "errors and retries"
+      ],
+      "redactions": [
+        "project root and other absolute local paths",
+        "email addresses",
+        "conversation identifier",
+        "well-known API-key, bearer-token, JWT, and private-key patterns",
+        "secret assignment values and database connection strings",
+        "URL query parameters"
+      ]
+    },
+    "supportingPrivateProvenance": {
+      "taskLogCount": 34,
+      "taskLogTotalBytes": 53736,
+      "sortedTaskLogManifestSha256": "dac2f02e42aa82f3c765903544868ec5cac8a80822b025da18e957726208180e",
+      "note": "Individual Antigravity task logs remain outside the repository. The manifest digest is SHA-256 of sorted lines in the form filename:byte-length:file-sha256.",
+      "planningArtifactDigests": [
+        {
+          "name": "implementation_plan.md",
+          "bytes": 9158,
+          "sha256": "3159cc56439c82e6507e91b06bf9afa0be0e8e2df29ec9c73852c70056ca7977"
+        },
+        {
+          "name": "upgrade_plan.md",
+          "bytes": 2045,
+          "sha256": "8a849828ac7d19575e99c0cce4fa2e033697239d4403505fb55323ed790acf4e"
+        },
+        {
+          "name": "task.md",
+          "bytes": 2872,
+          "sha256": "69fba2fc197cdf88bda89e0aeecbb6f15c5d182d7fec6bcf04f40fbf4667d38e"
+        },
+        {
+          "name": "walkthrough.md",
+          "bytes": 4285,
+          "sha256": "ab370479d97d9f7ad0405c8420bb843ce009071f8cf7fa161416efe295e81c59"
+        }
+      ]
+    }
+  },
+  "otherTraceLikeArtifacts": [
+    {
+      "path": "AGENT_TRAJECTORIES.json",
+      "classification": "synthetic-runtime-fixture",
+      "eligibleAsDevelopmentTrace": false,
+      "note": "Illustrates an application-runtime seven-agent chain for a synthetic case. It must not be presented as development provenance or a real patient record."
+    },
+    {
+      "path": "DEVELOPMENT_TRAJECTORY.json",
+      "classification": "retrospective-development-summary",
+      "eligibleAsRawTrace": false,
+      "note": "Useful navigation aid, but it is a narrative summary rather than timestamped source evidence."
+    }
+  ],
+  "knownGaps": [
+    "The first retained event is followed by a system checkpoint stating that earlier conversation context was truncated; unavailable earlier raw content was not reconstructed.",
+    "The repository did not contain historical Git commits when this manifest was prepared, so file-change provenance before repository initialization cannot be independently reconstructed from Git.",
+    "The raw Antigravity transcript is intentionally not included; judges receive the redacted derivative and source digests.",
+    "Runtime fixture telemetry is synthetic and does not establish medical-device performance, clinical efficacy, or real-world patient outcomes."
+  ],
+  "integrityVerification": {
+    "algorithm": "SHA-256",
+    "windowsPowerShell": "Get-FileHash -Algorithm SHA256 traces/DEVELOPMENT_TRACE.redacted.jsonl",
+    "crossPlatform": "shasum -a 256 traces/DEVELOPMENT_TRACE.redacted.jsonl"
+  }
+}
+

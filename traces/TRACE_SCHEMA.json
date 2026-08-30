@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://neurobridge.local/schemas/development-trace-event-v1.json",
+  "title": "NeuroBridge redacted development-agent trace event",
+  "description": "A privacy-reviewed derivative of one immutable event in the Antigravity system transcript. This schema is for development provenance, not clinical-runtime agent telemetry.",
+  "type": "object",
+  "required": [
+    "schemaVersion",
+    "sequence",
+    "sourceStepIndex",
+    "timestampUtc",
+    "source",
+    "eventType",
+    "status",
+    "sourceContentSha256",
+    "content",
+    "redactionsApplied"
+  ],
+  "properties": {
+    "schemaVersion": { "const": "1.0.0" },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "sourceStepIndex": { "type": "integer", "minimum": 0 },
+    "timestampUtc": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "string",
+      "enum": ["USER_EXPLICIT", "MODEL", "SYSTEM"]
+    },
+    "eventType": { "type": "string" },
+    "status": { "type": "string" },
+    "sourceContentSha256": {
+      "description": "SHA-256 of the exact pre-redaction content string; hashes null content as an empty byte sequence.",
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "content": { "type": ["string", "null"] },
+    "redactionsApplied": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "project-root",
+          "local-path",
+          "email",
+          "credential",
+          "connection-string",
+          "url-query",
+          "conversation-id",
+          "safety-fallback-withheld"
+        ]
+      },
+      "uniqueItems": true
+    },
+    "sourceTruncatedFields": {
+      "description": "Fields the Antigravity source marked as truncated, when present.",
+      "type": ["array", "null"]
+    }
+  },
+  "additionalProperties": false
+}
+
