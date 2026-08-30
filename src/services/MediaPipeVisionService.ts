@@ -95,12 +95,23 @@ export class MediaPipeVisionService {
 
       // 2. Open User Webcam
       this.stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 480, facingMode: 'user' },
+        video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' },
         audio: false
       });
 
       this.videoElement.srcObject = this.stream;
-      await this.videoElement.play();
+      await new Promise<void>((resolve) => {
+        if (!this.videoElement) return resolve();
+        if (this.videoElement.readyState >= 2) {
+          this.videoElement.play().then(() => resolve()).catch(() => resolve());
+        } else {
+          this.videoElement.onloadeddata = () => {
+            this.videoElement?.play().then(() => resolve()).catch(() => resolve());
+          };
+          // Fallback resolve after 1s
+          setTimeout(resolve, 1000);
+        }
+      });
       this.isTracking = true;
 
       this.startRealTimeTrackingLoop();
@@ -126,10 +137,17 @@ export class MediaPipeVisionService {
       const video = this.videoElement;
       const canvas = this.canvasElement;
       const ctx = this.canvasCtx;
-      const width = canvas.width;
-      const height = canvas.height;
 
-      if (video.currentTime !== this.lastVideoTime) {
+      // Sync canvas dimensions
+      if (video.videoWidth > 0 && (canvas.width !== video.videoWidth || canvas.height !== video.videoHeight)) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      }
+
+      const width = canvas.width || 640;
+      const height = canvas.height || 480;
+
+      if (video.readyState >= 2) {
         this.lastVideoTime = video.currentTime;
         const now = performance.now();
 

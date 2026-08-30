@@ -130,7 +130,7 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Real Live Video Viewport with True Landmark Overlays */}
           <div className="lg:col-span-7 relative rounded-2xl overflow-hidden bg-slate-950 border border-slate-800 aspect-[4/3] flex items-center justify-center shadow-2xl">
-            <video ref={videoRef} playsInline autoPlay muted className="hidden" />
+            <video ref={videoRef} playsInline autoPlay muted className="absolute opacity-0 pointer-events-none w-1 h-1" />
             <canvas ref={canvasRef} width={640} height={480} className="w-full h-full object-cover" />
 
             {!isWebcamActive && (
