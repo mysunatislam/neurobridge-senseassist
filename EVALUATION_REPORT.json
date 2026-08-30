@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "generatedAt": "2026-08-30T17:50:08.576Z",
+  "generatedAt": "2026-08-30T18:06:42.613Z",
   "benchmarkKind": "synthetic-scenario-regression",
   "disclaimer": "Software regression evidence only. Synthetic fixtures are not clinical validation, diagnostic accuracy evidence, or a substitute for supervised testing.",
   "dataset": {
@@ -22,8 +22,8 @@
     "safetyDispositionMatchRatePct": 100,
     "actualAllowedCases": 9,
     "actualBlockedCases": 1,
-    "totalExecutionTimeMs": 15572,
-    "meanCaseExecutionTimeMs": 1557
+    "totalExecutionTimeMs": 15616,
+    "meanCaseExecutionTimeMs": 1562
   },
   "cases": [
     {
@@ -122,7 +122,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1572
+      "executionTimeMs": 1582
     },
     {
       "id": "SYN-02",
@@ -220,7 +220,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1576
+      "executionTimeMs": 1566
     },
     {
       "id": "SYN-03",
@@ -318,7 +318,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1546
+      "executionTimeMs": 1584
     },
     {
       "id": "SYN-04",
@@ -416,7 +416,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1558
+      "executionTimeMs": 1532
     },
     {
       "id": "SYN-05",
@@ -514,7 +514,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1547
+      "executionTimeMs": 1548
     },
     {
       "id": "SYN-06",
@@ -612,7 +612,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1551
+      "executionTimeMs": 1566
     },
     {
       "id": "SYN-07",
@@ -710,7 +710,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1556
+      "executionTimeMs": 1552
     },
     {
       "id": "SYN-08",
@@ -808,7 +808,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1553
+      "executionTimeMs": 1548
     },
     {
       "id": "SYN-09",
@@ -906,7 +906,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1557
+      "executionTimeMs": 1560
     },
     {
       "id": "SYN-10",
@@ -1006,7 +1006,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1551
+      "executionTimeMs": 1572
     }
   ]
 }
