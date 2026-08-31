@@ -125,7 +125,7 @@ export class VoiceAssistantService {
     if (lower.includes('start') || lower.includes('begin') || lower.includes('trial') || lower.includes('ready')) {
       agenticTag = 'Sensory-Motor Adaptation Agent';
       const bpm = this.ctx?.currentBpm ?? 80;
-      responseText = `Starting speech motor trial. Synchronizing with the ${bpm} BPM haptic pacer. 1… 2… 3… breathe in… now speak.`;
+      responseText = `Starting clinical trial. Synchronizing ${bpm} BPM haptic pacer. 1… 2… 3… running 7 autonomous agents now. Results will appear in the Live Therapy Room.`;
       if (this.onCommandCallback) this.onCommandCallback('START_TRIAL');
     }
     // 2. Articulatory & Phonemic Pronunciation Analysis — reads actual session data

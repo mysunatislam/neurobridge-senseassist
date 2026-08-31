@@ -368,7 +368,7 @@ export function App() {
 
       {/* Floating Asha Voice Assistant Orb — wired to live session data */}
       <SiriVoiceAgentOrb
-        onStartTrial={() => setActiveTab('session')}
+        onStartTrial={handleTriggerLiveDemoTrial}
         onAdjustBpm={(bpm) => {
           handleRequestPacing({
             bpm,
