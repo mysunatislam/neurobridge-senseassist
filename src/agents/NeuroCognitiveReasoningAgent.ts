@@ -80,7 +80,7 @@ Respond with ONLY a JSON object, no markdown fences, no extra text:
 }`;
 
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiService.getApiKey()}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${geminiService.getApiKey()}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -134,7 +134,7 @@ Respond with ONLY a JSON object, no markdown fences, no extra text:
         ? `Gemini 2.0 Flash reasoned over real biomarkers + PulseSight → ${longitudinalComparison}`
         : `Local rule engine (no API key configured) → ${longitudinalComparison}`,
       decision: `[${usedGemini ? 'GEMINI' : 'LOCAL'}] Target: "${primaryTarget}" (Confidence: ${Math.round(confidence * 100)}%)`,
-      outputData: { reasoning, engine: usedGemini ? 'gemini-2.0-flash' : 'local-edge' },
+      outputData: { reasoning, engine: usedGemini ? 'gemini-3.7-flash' : 'local-edge' },
       executionTimeMs
     };
 

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Activity, Cpu, Sparkles, Brain, FlaskConical, FileText, Bluetooth, Key, UserCheck, Radio, Globe, Award, PlayCircle, ShieldAlert, Sun, Moon, Heart } from 'lucide-react';
+import { Activity, Cpu, Sparkles, Brain, FlaskConical, FileText, Bluetooth, Key, UserCheck, Radio, Globe, Award, PlayCircle, ShieldAlert, Sun, Moon, Heart, Database } from 'lucide-react';
 import { PATIENT_CASES, PatientPresetCase } from '../services/MockPatientCases';
 import { geminiService } from '../services/GeminiService';
 import { GLOBAL_LANGUAGES, GlobalLanguageConfig } from '../services/GlobalLanguageService';
 import { themeService, ThemeMode } from '../services/ThemeService';
+import { FirestoreJudgeManifest, loadFirestoreJudgeManifest } from '../services/FirestoreJudgeManifestService';
 
 interface HeaderProps {
   activeTab: string;
@@ -37,12 +38,35 @@ export const Header: React.FC<HeaderProps> = ({
   const [patientMenuOpen, setPatientMenuOpen] = useState(false);
   const [langMenuOpen, setLangMenuOpen] = useState(false);
   const [theme, setTheme] = useState<ThemeMode>(themeService.getTheme());
+  const [judgeManifest, setJudgeManifest] = useState<FirestoreJudgeManifest | null>(null);
+  const [firestoreStatus, setFirestoreStatus] = useState<'checking' | 'live' | 'fallback'>('checking');
   const hasApiKey = geminiService.hasApiKey();
 
   useEffect(() => {
     const listener = (newTheme: ThemeMode) => setTheme(newTheme);
     themeService.addListener(listener);
     return () => themeService.removeListener(listener);
+  }, []);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let active = true;
+
+    loadFirestoreJudgeManifest({ signal: controller.signal })
+      .then((manifest) => {
+        if (!active) return;
+        setJudgeManifest(manifest);
+        setFirestoreStatus('live');
+      })
+      .catch(() => {
+        if (!active) return;
+        setFirestoreStatus('fallback');
+      });
+
+    return () => {
+      active = false;
+      controller.abort();
+    };
   }, []);
 
   const navItems = [
@@ -341,6 +365,26 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="bg-slate-950/90 border-t border-slate-800/80 px-4 py-1 text-center text-[10px] text-slate-400 font-mono flex items-center justify-center space-x-2">
         <span className="text-amber-400 font-bold">RESEARCH PROTOTYPE:</span>
         <span>Built with frozen synthetic fixtures. Not for diagnosis or medical treatment. Clinician supervision required.</span>
+        <span aria-hidden="true" className="text-slate-700">|</span>
+        <span
+          className={`inline-flex items-center gap-1 font-bold ${
+            firestoreStatus === 'live'
+              ? 'text-teal-400'
+              : firestoreStatus === 'fallback'
+                ? 'text-slate-500'
+                : 'text-cyan-400'
+          }`}
+          title={judgeManifest
+            ? `Live read-only manifest: ${judgeManifest.scenarioCount} scenarios, ${judgeManifest.assertionCount} assertions`
+            : 'Checking the public read-only Cloud Firestore judge manifest'}
+        >
+          <Database className="w-3 h-3" />
+          {firestoreStatus === 'live'
+            ? 'FIRESTORE LIVE'
+            : firestoreStatus === 'fallback'
+              ? 'LOCAL EVIDENCE'
+              : 'FIRESTORE CHECK'}
+        </span>
       </div>
     </header>
   );

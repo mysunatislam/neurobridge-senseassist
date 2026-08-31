@@ -101,6 +101,61 @@ npm run build      # production bundle
 
 For an evaluator-focused walkthrough, input-provenance checks, and troubleshooting, see [REPRODUCTION_GUIDE.md](REPRODUCTION_GUIDE.md).
 
+## Reproducible Testing Instructions
+
+### Setup
+
+Clone the repository and install its dependencies:
+
+```bash
+git clone https://github.com/mysunatislam/neurobridge-senseassist.git
+cd neurobridge-senseassist
+npm install
+```
+
+### Running the Prototype
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+Open the application in your browser at `http://localhost:3000/`.
+
+### Evaluation Workflow
+
+1. Load the **Live Therapy Room** interface.
+2. Select a synthetic patient scenario.
+3. Provide the speech input supplied by the scenario.
+4. Observe the available analysis stages:
+   - Speech Perception Agent analysis
+   - PulseSight facial-motor analysis when the camera demonstration is enabled
+   - Gemini reasoning output when the optional Gemini connection is configured
+   - Therapy optimization recommendation
+   - Safety Boundary Agent validation
+5. Review the generated rehabilitation trajectory and application-level agent trace.
+
+### Expected Results
+
+The system should:
+
+- Detect the articulation patterns encoded in the selected synthetic fixture.
+- Generate multimodal reasoning when the corresponding optional inputs are enabled.
+- Recommend adaptive sensory cues.
+- Perform safety-boundary checks.
+- Display explainable application-level agent decisions.
+
+Synthetic-preset results demonstrate reproducible software behavior, not microphone accuracy or clinical effectiveness. Camera and Gemini outputs are optional and must be interpreted according to the input provenance displayed by the application.
+
+## No-cost Cloud Firestore integration
+
+The application reads a small, public, non-clinical judge manifest from a Cloud Firestore Standard database in `asia-south1`. The manifest records only software-evidence metadata (system name, scenario count, assertion count, evidence label, and update time). It contains no patient or session data.
+
+The checked-in [`firestore.rules`](firestore.rules) file permits public reads only for `public_judge_manifest/*`, denies client writes to that collection, and denies every other client read and write. If Firestore is unavailable, the interface labels the evidence as local rather than treating cloud data as present.
+
+The database uses Firestore's free quota with no Cloud Billing account linked. This prevents paid overages; free-quota exhaustion results in unavailable cloud reads rather than charges. The deployed manifest can be verified directly at the [public read-only Firestore endpoint](https://firestore.googleapis.com/v1/projects/gen-lang-client-0990479314/databases/%28default%29/documents/public_judge_manifest/neurobridge-senseassist).
+
 ## Demo path
 
 1. Open **micro1 Benchmarks** and run all 10 synthetic scenarios.

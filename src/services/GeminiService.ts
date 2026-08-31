@@ -7,7 +7,7 @@ export interface GeminiClinicalInsight {
 export interface GeminiAudioTranscript {
   transcript: string;
   source: 'gemini-audio-transcription';
-  model: 'gemini-2.0-flash';
+  model: 'gemini-3.7-flash';
   audioMimeType: string;
   audioSizeBytes: number;
   clinicianReviewRequired: true;
@@ -17,7 +17,7 @@ export interface GeminiAudioTranscript {
 export type EngineTier = 'local_edge_free' | 'cloud_gemini_free';
 
 export class GeminiService {
-  private static readonly AUDIO_TRANSCRIPTION_MODEL = 'gemini-2.0-flash' as const;
+  private static readonly AUDIO_TRANSCRIPTION_MODEL = 'gemini-3.7-flash' as const;
   private static readonly INLINE_REQUEST_LIMIT_BYTES = 20 * 1024 * 1024;
   // Base64 expands bytes by roughly 4/3. Keep enough room for the prompt and
   // JSON envelope so the complete inline generateContent request stays <20 MB.
@@ -174,7 +174,7 @@ Return only the candidate transcript, with no diagnosis, score, explanation, or 
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${cleanKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${cleanKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -230,7 +230,7 @@ Provide a structured clinical neuro-rehabilitation insight:
 Ensure strictly assistive clinical phrasing adhering to clinical boundaries.`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${this.apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${this.apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
