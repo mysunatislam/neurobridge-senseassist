@@ -19,7 +19,7 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
   const [banditArms, setBanditArms] = useState<BanditArm[]>(() => reinforcementLearningEngine.initializeArms());
   const [customHypothesis, setCustomHypothesis] = useState(
     lastExperiment?.hypothesis ||
-    `Multi-sensory haptic entrainment at ${digitalTwin.preferredBpm} BPM reduces motor speech initiation latency by >25% and improves segmental phonemic stability compared to un-cued spontaneous speech.`
+    `Controlled-trial proposal: compare uncued speech with ${digitalTwin.preferredBpm} BPM pacing using separately captured attempts and a clinician-defined scoring protocol.`
   );
 
   const experimentDesigner = new ExperimentDesignerAgent();
@@ -52,7 +52,7 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
         digitalTwin
       );
 
-      // Update Bandit RL Policy
+      // Update only this on-screen synthetic policy sandbox.
       const updatedArms = reinforcementLearningEngine.updateArmReward(
         banditArms,
         'arm-haptic',
@@ -74,10 +74,10 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
         <div>
           <div className="flex items-center space-x-2">
             <FlaskConical className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-xl font-bold text-white">Autonomous A/B Micro-Experiment Studio</h2>
+            <h2 className="text-xl font-bold text-white">Synthetic A/B Policy Sandbox</h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Multi-Armed Bandit (UCB1) reinforcement learning agent autonomously evaluating sensory modalities and adapting therapy policy weights.
+            Deterministic UCB1 visualization for a proposed experiment. No paired patient retries are captured on this page.
           </p>
         </div>
 
@@ -87,7 +87,7 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
           className="flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-emerald-500/20 transition-all disabled:opacity-50"
         >
           <Play className="w-4 h-4 fill-current" />
-          <span>{isRunning ? 'Executing Trial...' : 'Run Micro-Experiment & Update RL'}</span>
+          <span>{isRunning ? 'Computing Projection...' : 'Run Synthetic Projection'}</span>
         </button>
       </div>
 
@@ -95,7 +95,7 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
       <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-3">
         <span className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center space-x-1.5">
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Clinical Experiment Hypothesis</span>
+          <span>Controlled-Experiment Proposal</span>
         </span>
         <p className="text-sm text-slate-200 bg-slate-950/80 p-4 rounded-xl border border-slate-800 leading-relaxed font-mono">
           {customHypothesis}
@@ -105,6 +105,9 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
       {/* Side-by-Side Trial Comparison: Condition A vs Condition B */}
       {exp && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in">
+          <div className="md:col-span-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-200">
+            SYNTHETIC PROJECTION — zero sentences were captured. Values below are formula outputs for UI and policy testing, not measured outcomes.
+          </div>
           {/* Condition A Card */}
           <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -114,7 +117,7 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
                 </span>
                 <h3 className="text-base font-bold text-white mt-1">{exp.conditionA.name}</h3>
               </div>
-              <span className="text-xs text-slate-400">{exp.conditionA.sentencesCount} Sentences</span>
+              <span className="text-xs text-slate-400">No captured sentences</span>
             </div>
 
             <div className="space-y-3">
@@ -143,11 +146,11 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
               <div>
                 <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 flex items-center space-x-1">
                   <Award className="w-3 h-3 text-emerald-400" />
-                  <span>Winning Modality</span>
+                  <span>Projected Candidate</span>
                 </span>
                 <h3 className="text-base font-bold text-white mt-1">{exp.conditionB.name}</h3>
               </div>
-              <span className="text-xs text-slate-400">{exp.conditionB.sentencesCount} Sentences</span>
+              <span className="text-xs text-slate-400">No captured sentences</span>
             </div>
 
             <div className="space-y-3">
@@ -182,7 +185,7 @@ export const ExperimentStudio: React.FC<ExperimentStudioProps> = ({
           <div className="flex items-center space-x-2">
             <Binary className="w-5 h-5 text-teal-400" />
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Multi-Armed Bandit (UCB1) Sensory Selection Policy Distribution
+              Seeded Synthetic UCB1 Policy Distribution
             </h3>
           </div>
           <span className="text-xs font-mono text-teal-400">

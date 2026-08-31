@@ -1,15 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { lazy, Suspense, useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { Header } from './components/Header';
 import { LiveTherapySession } from './components/LiveTherapySession';
-import { AgentTraceViewer } from './components/AgentTraceViewer';
-import { DigitalTwinDashboard } from './components/DigitalTwinDashboard';
-import { ExperimentStudio } from './components/ExperimentStudio';
-import { TherapistPortal } from './components/TherapistPortal';
-import { Micro1EvaluationSuite } from './components/Micro1EvaluationSuite';
-import { ClinicalDefenseStudio } from './components/ClinicalDefenseStudio';
-import { PulseSightVitalsAndAacStudio } from './components/PulseSightVitalsAndAacStudio';
 import { SiriVoiceAgentOrb } from './components/SiriVoiceAgentOrb';
-import { ESP32WearableSimulator } from './components/ESP32WearableSimulator';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { GlobalPitchModal } from './components/GlobalPitchModal';
 import { JudgeGuidedTour } from './components/JudgeGuidedTour';
@@ -20,6 +12,15 @@ import { HapticController, HapticPacket } from './services/HapticController';
 import { ActuationGateDecision } from './services/ActuationSafetyGate';
 import { AgentOrchestrator } from './agents/AgentOrchestrator';
 import { SessionRunResult, PatientDigitalTwin, ClinicianApproval } from './agents/types';
+
+const AgentTraceViewer = lazy(() => import('./components/AgentTraceViewer').then(module => ({ default: module.AgentTraceViewer })));
+const DigitalTwinDashboard = lazy(() => import('./components/DigitalTwinDashboard').then(module => ({ default: module.DigitalTwinDashboard })));
+const ExperimentStudio = lazy(() => import('./components/ExperimentStudio').then(module => ({ default: module.ExperimentStudio })));
+const TherapistPortal = lazy(() => import('./components/TherapistPortal').then(module => ({ default: module.TherapistPortal })));
+const Micro1EvaluationSuite = lazy(() => import('./components/Micro1EvaluationSuite').then(module => ({ default: module.Micro1EvaluationSuite })));
+const ClinicalDefenseStudio = lazy(() => import('./components/ClinicalDefenseStudio').then(module => ({ default: module.ClinicalDefenseStudio })));
+const PulseSightVitalsAndAacStudio = lazy(() => import('./components/PulseSightVitalsAndAacStudio').then(module => ({ default: module.PulseSightVitalsAndAacStudio })));
+const ESP32WearableSimulator = lazy(() => import('./components/ESP32WearableSimulator').then(module => ({ default: module.ESP32WearableSimulator })));
 
 export function App() {
   const [activeTab, setActiveTab] = useState<string>('session');
@@ -68,6 +69,7 @@ export function App() {
     hapticController.setSafetyContext(null);
     setClinicianApproval(null);
     setIsPacingActive(false);
+    setSessionResult(null);
   }, [hapticController]);
 
   const commitSessionResult = useCallback((result: SessionRunResult) => {
@@ -87,44 +89,14 @@ export function App() {
     setSessionResult(boundResult);
   }, [hapticController, selectedPatient.digitalTwin.patientId]);
 
-  // Pre-calibrate an active result whenever the patient/language context changes.
+  // A context change clears the prior result. Presets run only after an explicit action.
   useEffect(() => {
-    let cancelled = false;
     beginNewTrial();
-
-    const initDefaultTrial = async () => {
-      const presetAudio = audioAnalyzer.simulatePresetCase({
-        transcript: selectedLanguage.sampleSpoken,
-        durationSec: selectedPatient.audioDurationSec,
-        pauses: selectedPatient.detectedPauses,
-        pitchSamples: selectedPatient.pitchSamples,
-        rmsDb: selectedPatient.rmsEnergyDb
-      });
-
-      const initialResult = await agentOrchestrator.executeSessionCycle(
-        selectedLanguage.defaultPhrase,
-        presetAudio.transcript,
-        presetAudio.durationSec,
-        presetAudio.pauses,
-        presetAudio.pitchSamples,
-        presetAudio.rmsDb,
-        selectedPatient.digitalTwin
-      );
-
-      if (!cancelled) commitSessionResult(initialResult);
-    };
-
-    void initDefaultTrial();
-    return () => {
-      cancelled = true;
-    };
+    setSessionResult(null);
   }, [
     selectedPatient,
     selectedLanguage,
-    audioAnalyzer,
-    agentOrchestrator,
-    beginNewTrial,
-    commitSessionResult
+    beginNewTrial
   ]);
 
   const handleConnectBle = async () => {
@@ -154,7 +126,14 @@ export function App() {
       presetAudio.pauses,
       presetAudio.pitchSamples,
       presetAudio.rmsDb,
-      selectedPatient.digitalTwin
+      selectedPatient.digitalTwin,
+      undefined,
+      {
+        source: 'synthetic-preset',
+        transcriptSource: 'synthetic-fixture',
+        label: `Guided demo fixture: ${selectedPatient.name} / ${selectedLanguage.name}`,
+        capturedAt: new Date().toISOString()
+      }
     );
 
     commitSessionResult(result);
@@ -250,6 +229,11 @@ export function App() {
 
       {/* Main Interactive Workspace Content */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Suspense fallback={(
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-10 text-center text-sm text-slate-400">
+            Loading module…
+          </div>
+        )}>
         {activeTab === 'session' && (
           <LiveTherapySession
             selectedPatient={selectedPatient}
@@ -329,18 +313,19 @@ export function App() {
             actuationDecision={actuationDecision}
           />
         )}
+        </Suspense>
       </main>
 
       {/* Footer */}
       <footer className="border-t border-slate-900 bg-[#060a15] py-4 text-center text-xs text-slate-500">
         <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>NeuroBridge SenseAssist &copy; 2026 | Global Autonomous Neuro-Rehabilitation Intelligence</span>
+          <span>NeuroBridge SenseAssist &copy; 2026 | Research and hackathon prototype</span>
           <div className="flex items-center space-x-4 text-[11px] text-slate-400">
             <span>FHIR R4-shaped prototype &bull; validation pending</span>
             <span>&bull;</span>
             <span>8 Global Languages (IPA)</span>
             <span>&bull;</span>
-            <span>$4 ESP32 Open Wearable Architecture</span>
+            <span>ESP32 BLE prototype</span>
           </div>
         </div>
       </footer>
@@ -368,7 +353,10 @@ export function App() {
 
       {/* Floating Asha Voice Assistant Orb — wired to live session data */}
       <SiriVoiceAgentOrb
-        onStartTrial={handleTriggerLiveDemoTrial}
+        onStartTrial={() => {
+          beginNewTrial();
+          setActiveTab('session');
+        }}
         onAdjustBpm={(bpm) => {
           handleRequestPacing({
             bpm,

@@ -82,7 +82,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <p className="hidden xl:block text-[10px] text-slate-400 font-medium tracking-wide">
-                Autonomous Multi-Agent Neuro-Rehabilitation
+                Seven-stage assistive workflow prototype
               </p>
             </div>
           </div>
@@ -340,7 +340,7 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Persistent Research Prototype Regulatory Disclaimer Banner */}
       <div className="bg-slate-950/90 border-t border-slate-800/80 px-4 py-1 text-center text-[10px] text-slate-400 font-mono flex items-center justify-center space-x-2">
         <span className="text-amber-400 font-bold">RESEARCH PROTOTYPE:</span>
-        <span>Built with calibrated synthetic cases. Not for autonomous diagnosis or medical treatment. Clinician supervision required.</span>
+        <span>Built with frozen synthetic fixtures. Not for diagnosis or medical treatment. Clinician supervision required.</span>
       </div>
     </header>
   );

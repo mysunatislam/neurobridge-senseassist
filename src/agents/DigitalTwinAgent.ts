@@ -2,11 +2,12 @@ import { AcousticBiomarkers, CommunicationPhenotype, PatientDigitalTwin, MicroEx
 
 export class DigitalTwinAgent {
   public name = 'Digital Twin Patient Model Agent';
-  public role = 'Dynamic Patient Communication Model & Trajectory Predictor';
+  public role = 'Ephemeral Scenario State & Trajectory Projection';
   public badgeColor = 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40';
 
   /**
-   * Updates the mathematical Digital Twin profile based on the current session's empirical performance and micro-experiment outcomes.
+   * Returns an in-memory scenario update. Persistent patient-state validation is
+   * outside this prototype.
    */
   public updateTwin(
     currentTwin: PatientDigitalTwin,
@@ -43,7 +44,7 @@ export class DigitalTwinAgent {
 
     // Update responsiveness based on experiment reward
     let newHapticResp = currentTwin.hapticResponsiveness;
-    if (experiment && experiment.deltaAccuracy > 0) {
+    if (experiment?.evidenceKind === 'measured-controlled-trial' && experiment.deltaAccuracy > 0) {
       newHapticResp = Number(Math.min(0.98, currentTwin.hapticResponsiveness + 0.04).toFixed(2));
     }
 
@@ -95,8 +96,8 @@ export class DigitalTwinAgent {
       timestamp: new Date().toISOString().substring(11, 19),
       status: 'completed',
       observation: `Ingested session #${newSessionNumber} metrics. Articulation=${newArticulation}, Rhythm=${newRhythm}, Fluency=${newFluency}.`,
-      thought: `Updated Patient Communication Digital Twin parameters. Model responsiveness to rhythmic haptic cues increased to ${(newHapticResp * 100).toFixed(0)}%. Projected next session trajectory: +${(adaptiveGrowthRate * 100).toFixed(1)}% recovery slope.`,
-      decision: `Persisted state for Patient [${currentTwin.patientId}: ${currentTwin.name}]. Recommended pacing target: ${recommendedBpm} BPM.`,
+      thought: `Computed an in-memory scenario update. Haptic responsiveness remains ${(newHapticResp * 100).toFixed(0)}% because synthetic projections cannot update it as evidence. Next-run target is a model projection, not a recovery forecast.`,
+      decision: `Returned an ephemeral scenario state for [${currentTwin.patientId}: ${currentTwin.name}]. Suggested sandbox pacing target: ${recommendedBpm} BPM; nothing was persisted to an EHR.`,
       outputData: { updatedTwin, prediction },
       executionTimeMs
     };

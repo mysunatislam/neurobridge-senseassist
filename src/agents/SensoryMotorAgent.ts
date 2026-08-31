@@ -89,7 +89,7 @@ export class SensoryMotorAgent {
       status: 'completed',
       observation: `Evaluated sensory channels (Haptic Responsiveness=${digitalTwin.hapticResponsiveness}, Preferred BPM=${bpm}). Target deficit: "${reasoningTarget}".`,
       thought: `Selecting optimal sensory modality. Rhythm index (${biomarkers.rhythmStabilityIndex}) and initiation latency (${biomarkers.initiationLatencySec}s) indicate requirement for ${modality} intervention with '${hapticPattern}' pattern.`,
-      decision: `Generated ESP32 Haptic Protocol: ${bpm} BPM, ${hapticIntensityPercent}% intensity, ${visualCueType} visual guidance. Difficulty level: ${difficultyLevel}/10.`,
+      decision: `Proposed an app-gated pacing packet: ${bpm} BPM, ${hapticIntensityPercent}% intensity, ${visualCueType} visual guidance. Sandbox difficulty: ${difficultyLevel}/10.`,
       outputData: { intervention },
       executionTimeMs
     };

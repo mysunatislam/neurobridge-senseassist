@@ -32,9 +32,9 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
     {
       id: 'welcome',
       sender: 'assistant',
-      text: "Hi, I'm Asha, your Autonomous Hands-Free Speech Co-Pilot. I coordinate with our 7 clinical agents to guide your trials, analyze pronunciation, and pace rhythm.",
+      text: "Hi, I'm Asha, the prototype voice navigator. I can open the live-capture workflow, summarize the latest labelled result, and request pacing through the safety gate.",
       timestamp: new Date().toLocaleTimeString(),
-      agenticTag: 'Clinical Voice Co-Pilot'
+      agenticTag: 'Prototype Voice Navigator'
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -98,13 +98,13 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
               </div>
               <div>
                 <h4 className="text-xs font-bold text-white flex items-center space-x-1">
-                  <span>Asha Clinical Voice Co-Pilot</span>
+                  <span>Asha Prototype Voice Navigator</span>
                   <span className="text-[8px] px-1.5 py-0.2 rounded-full bg-teal-500/20 text-teal-300 border border-teal-500/30 font-mono">
-                    7-Agent Interface
+                    Voice Interface
                   </span>
                 </h4>
                 <span className="text-[10px] text-slate-400">
-                  {state === 'LISTENING' ? 'Listening for speech...' : state === 'SPEAKING' ? 'Vocalizing clinical feedback...' : state === 'THINKING' ? 'Consulting agentic trajectory...' : 'Hands-Free Stroke & Speech Co-Pilot'}
+                  {state === 'LISTENING' ? 'Listening for a navigation command...' : state === 'SPEAKING' ? 'Reading the response...' : state === 'THINKING' ? 'Reading available session state...' : 'Prototype navigation and result summary'}
                 </span>
               </div>
             </div>
@@ -249,9 +249,9 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
             className="hidden sm:flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/90 border border-purple-500/30 text-xs text-purple-200 shadow-xl cursor-pointer hover:border-purple-400 transition-all backdrop-blur-md"
           >
             <Sparkles className="w-3.5 h-3.5 text-purple-400 animate-pulse" />
-            <span className="font-semibold">Asha Speech Co-Pilot</span>
+            <span className="font-semibold">Asha Voice Navigator</span>
             <span className="text-[10px] text-slate-400">
-              {state === 'SPEAKING' ? '(Coaching...)' : state === 'LISTENING' ? '(Listening...)' : '(Hands-Free)'}
+              {state === 'SPEAKING' ? '(Reading...)' : state === 'LISTENING' ? '(Listening...)' : '(Prototype)'}
             </span>
           </div>
         )}

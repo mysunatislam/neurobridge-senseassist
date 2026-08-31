@@ -72,7 +72,7 @@ export class FhirExportService {
                   display: 'Speech acoustic biomarker assessment (NeuroBridge SenseAssist)'
                 }
               ],
-              text: 'Autonomous Multi-Agent Neuro-Rehabilitation Evaluation'
+              text: 'Seven-Stage Assistive Workflow Prototype Evaluation'
             },
             subject: { reference: patientRef },
             effectiveDateTime: timestamp,

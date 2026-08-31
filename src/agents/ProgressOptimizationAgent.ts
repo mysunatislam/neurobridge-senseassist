@@ -2,11 +2,12 @@ import { AcousticBiomarkers, CommunicationPhenotype, PatientDigitalTwin, Progres
 
 export class ProgressOptimizationAgent {
   public name = 'Therapy Optimization & Progress Intelligence Agent';
-  public role = 'Quantitative Trajectory & Clinical Intelligence Synthesis';
+  public role = 'Synthetic-History Comparison & Prototype Summary';
   public badgeColor = 'bg-blue-500/20 text-blue-300 border-blue-500/40';
 
   /**
-   * Generates quantitative progress benchmarks, therapist reports, and comparative clinical workflow metrics.
+   * Compares the current run with the selected scenario's stored synthetic
+   * history. It does not estimate clinical efficacy or workflow savings.
    */
   public generateReport(
     biomarkers: AcousticBiomarkers,
@@ -17,64 +18,60 @@ export class ProgressOptimizationAgent {
     trace: AgentTraceEvent;
   } {
     const startTime = performance.now();
-
     const history = digitalTwin.historicalTrajectory;
     const baseline = history[0] || {
-      wpm: 55,
-      pauseSec: 2.2,
-      articulation: 0.50,
-      rhythm: 0.40
+      wpm: biomarkers.speakingRateWpm,
+      pauseSec: biomarkers.meanPauseDurationSec,
+      articulation: phenotype.motorPlanningScore,
+      rhythm: biomarkers.rhythmStabilityIndex
     };
 
-    const wpmImprovementPercent = Math.round(((biomarkers.speakingRateWpm - baseline.wpm) / Math.max(baseline.wpm, 1)) * 100);
-    const pauseReductionPercent = Math.round(((baseline.pauseSec - biomarkers.meanPauseDurationSec) / Math.max(baseline.pauseSec, 0.1)) * 100);
+    const wpmImprovementPercent = Math.round(
+      ((biomarkers.speakingRateWpm - baseline.wpm) / Math.max(baseline.wpm, 1)) * 100
+    );
+    const pauseReductionPercent = Math.round(
+      ((baseline.pauseSec - biomarkers.meanPauseDurationSec) / Math.max(baseline.pauseSec, 0.1)) * 100
+    );
     const accuracyDelta = Math.round((phenotype.motorPlanningScore - baseline.articulation) * 100);
-    const quantifiedClinicalScore = Math.round((phenotype.motorPlanningScore * 0.4 + biomarkers.rhythmStabilityIndex * 0.3 + (biomarkers.speakingRateWpm / 120) * 0.3) * 100);
+    const quantifiedClinicalScore = Math.round(
+      (phenotype.motorPlanningScore * 0.4 +
+        biomarkers.rhythmStabilityIndex * 0.3 +
+        (biomarkers.speakingRateWpm / 120) * 0.3) * 100
+    );
 
     const comparativeMatrix = [
       {
-        parameter: 'Assessment & Protocol Time',
-        traditionalBaseline: '15 - 20 minutes (Manual transcription & stopwatch)',
-        neuroBridgeSenseAssist: '1.8 minutes (Real-time acoustic DSP & multi-agent phenotyping)',
-        quantifiedAdvantage: '88% faster clinical turnaround'
+        parameter: 'Evidence source',
+        traditionalBaseline: 'Selected scenario fixture history',
+        neuroBridgeSenseAssist: 'Current prototype pipeline result',
+        quantifiedAdvantage: 'Software comparison only; no clinical control group'
       },
       {
-        parameter: 'Progress Quantification',
-        traditionalBaseline: 'Subjective ("Some improvement noticed")',
-        neuroBridgeSenseAssist: `Numeric (${wpmImprovementPercent > 0 ? '+' : ''}${wpmImprovementPercent}% WPM, ${pauseReductionPercent}% pause reduction, ${accuracyDelta}% accuracy gain)`,
-        quantifiedAdvantage: 'Continuous quantitative precision'
+        parameter: 'Scenario values',
+        traditionalBaseline: `${baseline.wpm} WPM, ${baseline.pauseSec}s pause, ${Math.round(baseline.articulation * 100)}% stored proxy`,
+        neuroBridgeSenseAssist: `${biomarkers.speakingRateWpm} WPM, ${biomarkers.meanPauseDurationSec}s pause, ${Math.round(phenotype.motorPlanningScore * 100)}% current proxy`,
+        quantifiedAdvantage: 'Requires repeated real captures before interpreting change'
       },
       {
-        parameter: 'Exercise Selection',
-        traditionalBaseline: 'Manual therapist trial-and-error',
-        neuroBridgeSenseAssist: 'Autonomous reinforcement learning micro-experiments',
-        quantifiedAdvantage: 'Data-driven individualized adaptation'
-      },
-      {
-        parameter: 'Sensory Modality Cues',
-        traditionalBaseline: 'Audio only (verbal instructions)',
-        neuroBridgeSenseAssist: 'Multimodal (Haptic ESP32 80 BPM + Visual motor + Auditory RAS)',
-        quantifiedAdvantage: 'Tri-modal neuro-motor entrainment'
-      },
-      {
-        parameter: 'Longitudinal Memory',
-        traditionalBaseline: 'Manual chart review across binders',
-        neuroBridgeSenseAssist: 'Living Patient Digital Twin model updated each trial',
-        quantifiedAdvantage: 'Automated trajectory extrapolation'
+        parameter: 'Validation status',
+        traditionalBaseline: 'No recruited-participant baseline',
+        neuroBridgeSenseAssist: '10 deterministic synthetic regression scenarios',
+        quantifiedAdvantage: 'Engineering behavior tested; clinical performance unvalidated'
       }
     ];
 
-    const therapistSummaryMarkdown = `### Clinical Progress Summary: Patient ${digitalTwin.name} (${digitalTwin.patientId})
-- **Diagnosis Profile**: ${digitalTwin.clinicalCondition}
-- **Completed Sessions**: ${digitalTwin.sessionsCompleted}
-- **Acoustic Phenotype**: ${phenotype.primaryDeficit} (${phenotype.severity.toUpperCase()})
-- **Speaking Velocity**: ${biomarkers.speakingRateWpm} WPM (${wpmImprovementPercent >= 0 ? '+' : ''}${wpmImprovementPercent}% from baseline ${baseline.wpm} WPM)
-- **Transition Pause Latency**: ${biomarkers.meanPauseDurationSec}s (${pauseReductionPercent}% reduction from baseline ${baseline.pauseSec}s)
-- **Rhythm Stability Index**: ${(biomarkers.rhythmStabilityIndex * 100).toFixed(0)}% (Entrained with ${digitalTwin.preferredBpm} BPM haptic protocol)
-- **Clinical Recommendation**: Continue sensory-motor pacing with fading haptic prompts; progress phonemic target complexity to multi-clause sentence structures.`;
+    const therapistSummaryMarkdown = `### Prototype Scenario Summary: ${digitalTwin.name} (${digitalTwin.patientId})
+- **Evidence**: Current run compared with bundled synthetic history; not a clinical progress assessment
+- **Scenario Label**: ${digitalTwin.clinicalCondition}
+- **Current Speaking-Rate Proxy**: ${biomarkers.speakingRateWpm} WPM
+- **Current Mean Observed Pause**: ${biomarkers.meanPauseDurationSec}s
+- **Current Rhythm Proxy**: ${(biomarkers.rhythmStabilityIndex * 100).toFixed(0)}%
+- **Review Boundary**: A clinician must interpret repeated real captures before changing a care plan.`;
 
     const progress: ProgressReport = {
-      assessmentTimeReductionPercent: 88,
+      evidenceKind: 'stored-synthetic-history-comparison',
+      baselineSource: 'Bundled selected-patient scenario history',
+      assessmentTimeReductionPercent: 0,
       wpmImprovementPercent,
       pauseReductionPercent,
       accuracyDelta,
@@ -84,7 +81,6 @@ export class ProgressOptimizationAgent {
     };
 
     const executionTimeMs = Math.round(performance.now() - startTime);
-
     const trace: AgentTraceEvent = {
       agentId: 'agent-progress-optimization',
       agentName: this.name,
@@ -92,9 +88,9 @@ export class ProgressOptimizationAgent {
       badgeColor: this.badgeColor,
       timestamp: new Date().toISOString().substring(11, 19),
       status: 'completed',
-      observation: `Computed progress metrics across ${digitalTwin.sessionsCompleted} sessions. WPM Delta: +${wpmImprovementPercent}%, Pause Reduction: ${pauseReductionPercent}%.`,
-      thought: `Synthesizing clinical evaluation report. Quantified clinical recovery score: ${quantifiedClinicalScore}/100.`,
-      decision: `Generated clinical summary and baseline comparison matrix for therapist dashboard review.`,
+      observation: `Compared the current run with ${digitalTwin.sessionsCompleted} bundled synthetic history points. WPM delta ${wpmImprovementPercent}%, pause delta ${pauseReductionPercent}%.`,
+      thought: `Computed internal composite proxy ${quantifiedClinicalScore}/100. This is not a clinical recovery score.`,
+      decision: 'Generated a prototype scenario summary with explicit synthetic-history provenance for clinician review.',
       outputData: { progress },
       executionTimeMs
     };

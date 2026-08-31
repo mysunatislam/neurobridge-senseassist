@@ -5,7 +5,9 @@ export interface AudioAnalysisResult {
   pitchSamples: number[];
   rmsDb: number;
   waveformSamples: number[];
-  signalSource: 'live-microphone' | 'synthetic-preset' | 'microphone-fallback';
+  signalSource: 'live-microphone' | 'synthetic-preset';
+  transcriptSource: 'browser-speech-recognition' | 'synthetic-fixture' | 'unavailable';
+  recognitionWarning?: string;
 }
 
 export class AudioAnalyzer {
@@ -19,6 +21,8 @@ export class AudioAnalyzer {
   private pauseEvents: Array<{ start: number; duration: number }> = [];
   private lastSoundTime = 0;
   private accumulatedTranscript = '';
+  private interimTranscript = '';
+  private recognitionWarning: string | null = null;
   private capturedPitchHz: number[] = [];
   private capturedRmsDb: number[] = [];
   private latestWaveformSamples: number[] = [];
@@ -26,8 +30,25 @@ export class AudioAnalyzer {
   private microphoneAvailable = false;
 
   public async startRecording(
-    onDataUpdate?: (frequencyData: Uint8Array, rmsDb: number) => void
+    onDataUpdate?: (frequencyData: Uint8Array, rmsDb: number) => void,
+    languageCode = 'en-US'
   ): Promise<boolean> {
+    // Reset all per-capture state before requesting permission so a denied second
+    // recording can never leak transcript/features from the previous one.
+    this.isRecording = false;
+    this.startTime = 0;
+    this.pauseEvents = [];
+    this.accumulatedTranscript = '';
+    this.interimTranscript = '';
+    this.recognitionWarning = null;
+    this.recordedChunks = [];
+    this.capturedPitchHz = [];
+    this.capturedRmsDb = [];
+    this.latestWaveformSamples = [];
+    this.lastFeatureSampleTime = 0;
+    this.microphoneAvailable = false;
+    this.recognition = null;
+
     try {
       this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
       this.micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -39,13 +60,6 @@ export class AudioAnalyzer {
       this.isRecording = true;
       this.startTime = performance.now();
       this.lastSoundTime = this.startTime;
-      this.pauseEvents = [];
-      this.accumulatedTranscript = '';
-      this.recordedChunks = [];
-      this.capturedPitchHz = [];
-      this.capturedRmsDb = [];
-      this.latestWaveformSamples = [];
-      this.lastFeatureSampleTime = 0;
       this.microphoneAvailable = true;
 
       // Initialize Speech Recognition if supported
@@ -54,7 +68,7 @@ export class AudioAnalyzer {
         this.recognition = new SpeechRecognition();
         this.recognition.continuous = true;
         this.recognition.interimResults = true;
-        this.recognition.lang = 'en-US';
+        this.recognition.lang = languageCode;
 
         this.recognition.onresult = (event: any) => {
           let interim = '';
@@ -65,10 +79,12 @@ export class AudioAnalyzer {
               interim += event.results[i][0].transcript;
             }
           }
+          this.interimTranscript = interim.trim();
         };
 
         this.recognition.onerror = (e: any) => {
           console.warn('Speech recognition notice:', e.error);
+          this.recognitionWarning = `Browser speech recognition: ${String(e.error || 'unknown error')}`;
         };
 
         try {
@@ -128,15 +144,24 @@ export class AudioAnalyzer {
       requestAnimationFrame(checkAudio);
       return true;
     } catch (err) {
-      console.warn('Microphone access unavailable or denied, falling back to simulated input:', err);
-      this.isRecording = true;
-      this.startTime = performance.now();
+      console.warn('Microphone access unavailable or denied:', err);
+      this.isRecording = false;
       this.microphoneAvailable = false;
+      this.recognitionWarning = err instanceof Error ? err.message : String(err);
+      if (this.micStream) {
+        this.micStream.getTracks().forEach((track) => track.stop());
+        this.micStream = null;
+      }
+      if (this.audioCtx && this.audioCtx.state !== 'closed') {
+        try {
+          await this.audioCtx.close();
+        } catch (e) {}
+      }
       return false;
     }
   }
 
-  public async stopRecording(fallbackTranscript = 'The red rabbit runs through the green grass'): Promise<AudioAnalysisResult> {
+  public async stopRecording(): Promise<AudioAnalysisResult> {
     this.isRecording = false;
     const durationSec = Number(((performance.now() - this.startTime) / 1000).toFixed(2));
 
@@ -144,6 +169,8 @@ export class AudioAnalyzer {
       try {
         this.recognition.stop();
       } catch (e) {}
+      // Give the browser a brief chance to promote the latest interim result to final.
+      await new Promise((resolve) => setTimeout(resolve, 180));
     }
 
     if (this.micStream) {
@@ -155,31 +182,28 @@ export class AudioAnalyzer {
       } catch (e) {}
     }
 
-    const transcript = this.accumulatedTranscript.trim() || fallbackTranscript;
+    const finalText = this.accumulatedTranscript.trim();
+    const interimText = this.interimTranscript.trim();
+    const transcript = [finalText, interimText].filter(Boolean).join(' ').trim();
 
     const pitchSamples = this.microphoneAvailable ? [...this.capturedPitchHz] : [];
-    const waveformSamples = this.microphoneAvailable
-      ? [...this.latestWaveformSamples]
-      : this.createDeterministicWaveform([124, 128, 121, 132, 126, 129, 123]);
+    const waveformSamples = this.microphoneAvailable ? [...this.latestWaveformSamples] : [];
     const meanRmsDb = this.capturedRmsDb.length > 0
       ? Math.round(this.capturedRmsDb.reduce((sum, value) => sum + value, 0) / this.capturedRmsDb.length)
       : -60;
 
-    const pauses = this.pauseEvents.length > 0
-      ? this.pauseEvents
-      : [
-          { start: 0.8, duration: 0.9 },
-          { start: 2.2, duration: 0.7 }
-        ];
+    const pauses = [...this.pauseEvents];
 
     return {
       transcript,
-      durationSec: Math.max(durationSec, 2.5),
+      durationSec: Math.max(durationSec, 0.01),
       pauses,
       pitchSamples,
       rmsDb: meanRmsDb,
       waveformSamples,
-      signalSource: this.microphoneAvailable ? 'live-microphone' : 'microphone-fallback'
+      signalSource: 'live-microphone',
+      transcriptSource: transcript ? 'browser-speech-recognition' : 'unavailable',
+      recognitionWarning: this.recognitionWarning || undefined
     };
   }
 
@@ -197,7 +221,8 @@ export class AudioAnalyzer {
       pitchSamples: preset.pitchSamples,
       rmsDb: preset.rmsDb,
       waveformSamples: this.createDeterministicWaveform(preset.pitchSamples),
-      signalSource: 'synthetic-preset'
+      signalSource: 'synthetic-preset',
+      transcriptSource: 'synthetic-fixture'
     };
   }
 

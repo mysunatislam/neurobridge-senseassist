@@ -1,5 +1,4 @@
 import { AcousticBiomarkers, CommunicationPhenotype, PatientDigitalTwin, AgentTraceEvent } from './types';
-import { PulseSightReading } from '../services/PulseSightService';
 
 export class NeuroCognitiveReasoningAgent {
   public name = 'Neuro-Cognitive Reasoning Agent';
@@ -7,14 +6,12 @@ export class NeuroCognitiveReasoningAgent {
   public badgeColor = 'bg-purple-500/20 text-purple-300 border-purple-500/40';
 
   /**
-   * Performs longitudinal comparison and clinical reasoning across cognitive vs motor deficit layers.
-   * Now incorporates PulseSight facial-motor data for true multimodal reasoning.
+   * Produces prototype heuristics from speech-derived features and stored fixture history.
    */
   public reason(
     biomarkers: AcousticBiomarkers,
     phenotype: CommunicationPhenotype,
-    digitalTwin: PatientDigitalTwin,
-    pulseSight?: PulseSightReading
+    digitalTwin: PatientDigitalTwin
   ): {
     reasoning: {
       longitudinalComparison: string;
@@ -43,7 +40,7 @@ export class NeuroCognitiveReasoningAgent {
       longitudinalComparison = `Initial baseline calibration: Baseline pause latency at ${biomarkers.initiationLatencySec}s with ${biomarkers.speakingRateWpm} WPM speaking velocity.`;
     }
 
-    // Cognitive vs Motor Layer Reasoning — now fusing audio + PulseSight facial evidence
+    // Speech-derived heuristic reasoning. No camera features are fused here.
     let cognitiveVsMotorAnalysis = '';
     let primaryTarget = '';
     let confidence = 0.94;
@@ -52,28 +49,19 @@ export class NeuroCognitiveReasoningAgent {
     const hasInitiationDelay = biomarkers.initiationLatencySec > 0.8;
     const hasRhythmInstability = biomarkers.rhythmStabilityIndex < 0.7;
 
-    // PulseSight multimodal evidence
-    const hasFacialDelay = pulseSight && pulseSight.lipTimingDelayMs > 140;
-    const hasFacialAsymmetry = pulseSight && pulseSight.lipSymmetryPercent < 72;
-    const facialEvidence = pulseSight
-      ? ` PulseSight confirms: lip timing delay ${pulseSight.lipTimingDelayMs}ms, symmetry ${pulseSight.lipSymmetryPercent}% — ${pulseSight.clinicalFlag}.`
-      : '';
-
-    if (hasFacialDelay && hasFacialAsymmetry && hasPhonemeError) {
-      cognitiveVsMotorAnalysis = `MULTIMODAL EVIDENCE: Audio detects /r/→/w/ substitution. PulseSight independently detects lip motor delay (${pulseSight!.lipTimingDelayMs}ms) and bilateral asymmetry (${pulseSight!.lipSymmetryPercent}%). Combined evidence confirms motor articulation deficit, not purely cognitive. Oral-motor coordination: ${pulseSight!.oralMotorCoordinationIndex}%.${facialEvidence}`;
-      primaryTarget = 'Motor Articulation Re-education: Rhythmic Haptic Pacing + Lip Aperture Visual Guide';
-      confidence = 0.97;
-    } else if (hasInitiationDelay && hasRhythmInstability) {
-      cognitiveVsMotorAnalysis = `Differential: Sensory-motor synchronization deficit coupled with motor planning latency.${facialEvidence} Segmental phoneme execution recovers once rhythm entrainment is established.`;
+    if (hasInitiationDelay && hasRhythmInstability) {
+      cognitiveVsMotorAnalysis = 'Prototype heuristic: the supplied speech features show initiation delay and rhythm instability. This is not a neurological diagnosis and requires clinician interpretation.';
       primaryTarget = 'Rhythmic Auditory-Haptic Entrainment (RAS) to Stabilize Motor Speech Planning';
     } else if (hasInitiationDelay && !hasPhonemeError && !hasRhythmInstability) {
-      cognitiveVsMotorAnalysis = `Differential: Pure motor speech initiation delay (pre-motor planning hesitation) with intact segmental phoneme placement.${facialEvidence}`;
+      cognitiveVsMotorAnalysis = 'Prototype heuristic: initiation delay is present while configured substitution and rhythm checks are clear. This is not a diagnosis.';
       primaryTarget = 'Speech Initiation Acceleration via Kinetic Motor Preparation';
     } else if (hasPhonemeError && articulatoryImprovement >= 20) {
-      cognitiveVsMotorAnalysis = `Differential: Longitudinal recovery reveals significant articulatory phoneme stabilization (+${articulatoryImprovement}%).${facialEvidence} The residual deficit has migrated from muscular articulation to temporal initiation sequencing.`;
+      cognitiveVsMotorAnalysis = `Prototype heuristic: the current speech-text proxy differs from the stored synthetic baseline by ${articulatoryImprovement} points. The comparison is not clinical evidence.`;
       primaryTarget = 'Transition Target: Phase from Isolated Articulatory Cues to Temporal Initiation Flow';
     } else {
-      cognitiveVsMotorAnalysis = `Differential: Mixed phonemic substitution (/r/ → /w/) with sub-harmonic tremor during sustained phonation.${facialEvidence} Requires concurrent tactile-kinesthetic biofeedback.`;
+      cognitiveVsMotorAnalysis = hasPhonemeError
+        ? 'Prototype heuristic: configured text substitutions were detected in the supplied transcript. Audio-only evidence cannot establish a neurological cause.'
+        : 'Prototype heuristic: no configured text substitution was detected. Other proxy features still require clinician review.';
       primaryTarget = 'Multi-Sensory Segmental Phoneme Re-education with Haptic Synchronization';
     }
 
@@ -86,10 +74,6 @@ export class NeuroCognitiveReasoningAgent {
 
     const executionTimeMs = Math.round(performance.now() - startTime);
 
-    const facialSummary = pulseSight
-      ? ` Facial: lip symmetry ${pulseSight.lipSymmetryPercent}%, timing delay ${pulseSight.lipTimingDelayMs}ms.`
-      : '';
-
     const trace: AgentTraceEvent = {
       agentId: 'agent-neuro-cognitive-reasoning',
       agentName: this.name,
@@ -97,9 +81,9 @@ export class NeuroCognitiveReasoningAgent {
       badgeColor: this.badgeColor,
       timestamp: new Date().toISOString().substring(11, 19),
       status: 'completed',
-      observation: `Historical trajectory loaded (${digitalTwin.sessionsCompleted} sessions). Audio: motor score ${phenotype.motorPlanningScore}, rhythm stability ${biomarkers.rhythmStabilityIndex}.${facialSummary}`,
-      thought: `Multimodal fusion: audio phoneme errors + PulseSight facial kinematics → ${longitudinalComparison}`,
-      decision: `Therapeutic target: "${primaryTarget}" (Confidence: ${Math.round(confidence * 100)}%).`,
+      observation: `Stored fixture trajectory loaded (${digitalTwin.sessionsCompleted} sessions). Speech-motor proxy ${phenotype.motorPlanningScore}, rhythm proxy ${biomarkers.rhythmStabilityIndex}. No camera measurement was supplied.`,
+      thought: `Speech-derived prototype heuristic with stored trajectory context: ${longitudinalComparison}`,
+      decision: `Suggested practice target: "${primaryTarget}" (heuristic score: ${Math.round(confidence * 100)}%).`,
       outputData: { reasoning },
       executionTimeMs
     };

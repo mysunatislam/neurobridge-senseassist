@@ -22,13 +22,13 @@ export const AgentTraceViewer: React.FC<AgentTraceViewerProps> = ({
         </div>
         <h3 className="text-lg font-bold text-white">No Agent Execution Trace Recorded Yet</h3>
         <p className="text-sm text-slate-400 max-w-md mx-auto">
-          Run a clinical trial from the Live Therapy Room to observe the autonomous 7-agent clinical reasoning chain in real time.
+          Run a labelled live capture or synthetic fixture to inspect the seven-stage prototype trace.
         </p>
         <button
           onClick={onRunTrial}
           className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-500 text-slate-950 font-bold text-xs shadow-lg shadow-teal-500/20 hover:from-teal-400 hover:to-cyan-400 transition-all"
         >
-          Execute First Clinical Trial
+          Open Session Input
         </button>
       </div>
     );
@@ -56,16 +56,16 @@ export const AgentTraceViewer: React.FC<AgentTraceViewerProps> = ({
         <div>
           <div className="flex items-center space-x-2">
             <Cpu className="w-5 h-5 text-teal-400 animate-pulse" />
-            <h2 className="text-xl font-bold text-white">Autonomous Agent Trace Graph</h2>
+            <h2 className="text-xl font-bold text-white">Prototype Stage Trace Graph</h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Real-time step-by-step cognitive and clinical reasoning trace across 7 autonomous specialized agents.
+            Step-by-step software trace bound to a {sessionResult.inputProvenance.source.replace('-', ' ')} input.
           </p>
         </div>
 
         <div className="flex items-center space-x-3 text-xs">
           <div className="px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-slate-300">
-            Agents Fired: <strong className="text-teal-400">7 / 7</strong>
+            Terminal stages: <strong className="text-teal-400">{sessionResult.traceEvents.length} / 7</strong>
           </div>
           <div className="px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-slate-300">
             Total Pipeline Latency: <strong className="text-cyan-400">{totalExecutionTime} ms</strong>
@@ -136,7 +136,7 @@ export const AgentTraceViewer: React.FC<AgentTraceViewerProps> = ({
 
                   <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800/80 space-y-1">
                     <span className="text-[10px] font-bold text-purple-400 uppercase tracking-wider flex items-center space-x-1">
-                      <span>Agent Thought Process</span>
+                      <span>Prototype Rationale</span>
                     </span>
                     <p className="text-slate-300 leading-relaxed italic">{event.thought}</p>
                   </div>
@@ -144,7 +144,7 @@ export const AgentTraceViewer: React.FC<AgentTraceViewerProps> = ({
                   <div className="p-3 rounded-xl bg-teal-950/20 border border-teal-500/30 space-y-1">
                     <span className="text-[10px] font-bold text-teal-400 uppercase tracking-wider flex items-center space-x-1">
                       <CheckCircle2 className="w-3 h-3 text-teal-400" />
-                      <span>Autonomous Decision</span>
+                      <span>Stage Output</span>
                     </span>
                     <p className="text-teal-200 font-medium leading-relaxed">{event.decision}</p>
                   </div>

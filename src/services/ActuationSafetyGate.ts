@@ -75,16 +75,8 @@ export function evaluateActuationGate(
     };
   }
 
-  if (context.safety.actuationPermitted) {
-    return {
-      permitted: true,
-      mode: 'autonomous',
-      code: 'AUTONOMOUS_CLEARANCE',
-      reason: 'The active session safety result permits autonomous actuation.',
-      sessionId: context.sessionId
-    };
-  }
-
+  // Approval-required is evaluated before autonomous clearance so internally
+  // inconsistent flags fail closed rather than bypassing the signature.
   if (context.safety.therapistApprovalRequired) {
     if (isApprovalBoundToContext(approval, context)) {
       return {
@@ -103,6 +95,26 @@ export function evaluateActuationGate(
       reason: approval
         ? 'The available clinician approval belongs to another patient or session.'
         : 'This intervention requires a clinician signature for the active session.',
+      sessionId: context.sessionId
+    };
+  }
+
+  if (!context.safety.passed) {
+    return {
+      permitted: false,
+      mode: 'blocked',
+      code: 'SAFETY_VETO',
+      reason: 'The active safety screen did not pass.',
+      sessionId: context.sessionId
+    };
+  }
+
+  if (context.safety.actuationPermitted) {
+    return {
+      permitted: true,
+      mode: 'autonomous',
+      code: 'AUTONOMOUS_CLEARANCE',
+      reason: 'The active session safety result permits app-level autonomous actuation.',
       sessionId: context.sessionId
     };
   }

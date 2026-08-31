@@ -93,7 +93,8 @@ export class ReinforcementLearningEngine {
   }
 
   /**
-   * Updates bandit arm statistics following an empirical micro-experiment trial.
+   * Updates bandit arm statistics in the local policy sandbox. Callers must not
+   * label synthetic rewards as empirical observations.
    */
   public updateArmReward(
     arms: BanditArm[],

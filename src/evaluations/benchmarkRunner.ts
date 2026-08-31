@@ -113,7 +113,9 @@ export function buildCaseAssertions(
   const inputBindingPreserved =
     runResult.targetPhrase === testCase.input.targetPhrase &&
     runResult.spokenTranscript === testCase.input.spokenTranscript &&
-    runResult.digitalTwin.patientId === testCase.input.digitalTwin.patientId;
+    runResult.digitalTwin.patientId === testCase.input.digitalTwin.patientId &&
+    runResult.inputProvenance.source === 'synthetic-preset' &&
+    runResult.inputProvenance.transcriptSource === 'synthetic-fixture';
 
   return [
     assertion(
@@ -192,7 +194,14 @@ export async function runEvaluationBenchmark(
       testCase.input.detectedPauses,
       testCase.input.pitchSamplesHz,
       testCase.input.rmsEnergyDb,
-      testCase.input.digitalTwin
+      testCase.input.digitalTwin,
+      undefined,
+      {
+        source: 'synthetic-preset',
+        transcriptSource: 'synthetic-fixture',
+        label: `Benchmark fixture ${testCase.id}`,
+        capturedAt: new Date().toISOString()
+      }
     );
 
     const assertions = buildCaseAssertions(testCase, runResult);

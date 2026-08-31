@@ -41,10 +41,10 @@ export const TherapistPortal: React.FC<TherapistPortalProps> = ({
         <div>
           <div className="flex items-center space-x-2">
             <FileText className="w-5 h-5 text-teal-400" />
-            <h2 className="text-xl font-bold text-white">Therapist Clinical Portal & Progress Intelligence</h2>
+            <h2 className="text-xl font-bold text-white">Therapist Review & Actuation Approval</h2>
           </div>
           <p className="text-xs text-slate-400 mt-1">
-            Quantitative neuro-rehabilitation metrics, clinical workflow improvements, and human-in-the-loop therapist oversight.
+            Review labelled prototype evidence and bind approval to the active patient/session before gated output.
           </p>
         </div>
 
@@ -54,20 +54,20 @@ export const TherapistPortal: React.FC<TherapistPortalProps> = ({
             className="flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 text-xs font-semibold transition-all shadow-md"
           >
             <Download className="w-4 h-4" />
-            <span>Generate Clinical Report</span>
+            <span>Generate Prototype Report</span>
           </button>
         </div>
       </div>
 
-      {/* Workflow Transformation Benchmark: Traditional vs NeuroBridge */}
+      {/* Evidence comparison from the active scenario result */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
           <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center space-x-2">
             <Award className="w-4 h-4 text-amber-400" />
-            <span>Clinical Evaluation Benchmark (Workflow & Intelligence Gain)</span>
+            <span>Scenario Evidence Comparison</span>
           </h3>
           <span className="text-[11px] text-teal-400 font-mono font-semibold">
-            Assessment Efficiency: +88% Faster
+            {progress?.evidenceKind ?? 'No active result'}
           </span>
         </div>
 
@@ -75,43 +75,25 @@ export const TherapistPortal: React.FC<TherapistPortalProps> = ({
           <table className="w-full text-left text-xs">
             <thead>
               <tr className="border-b border-slate-800 text-slate-400 font-mono text-[11px] uppercase">
-                <th className="py-3 px-4">Evaluation Parameter</th>
-                <th className="py-3 px-4">Traditional Therapy Baseline</th>
-                <th className="py-3 px-4 text-teal-400 font-bold">NeuroBridge SenseAssist</th>
-                <th className="py-3 px-4 text-amber-400">Quantified Clinical Advantage</th>
+                <th className="py-3 px-4">Comparison field</th>
+                <th className="py-3 px-4">Stored scenario reference</th>
+                <th className="py-3 px-4 text-teal-400 font-bold">Current prototype result</th>
+                <th className="py-3 px-4 text-amber-400">Interpretation boundary</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-slate-300">
-              <tr>
-                <td className="py-3 px-4 font-semibold text-white">Assessment & Protocol Time</td>
-                <td className="py-3 px-4 text-slate-400">15 - 20 minutes (Manual stopwatch)</td>
-                <td className="py-3 px-4 text-teal-300 font-bold">1.8 minutes (Real-time acoustic DSP)</td>
-                <td className="py-3 px-4 text-emerald-400 font-semibold">88% reduction in clinical turnaround</td>
-              </tr>
-              <tr>
-                <td className="py-3 px-4 font-semibold text-white">Progress Quantification</td>
-                <td className="py-3 px-4 text-slate-400">Subjective ("Some improvement noticed")</td>
-                <td className="py-3 px-4 text-teal-300 font-bold">Numeric (+28% WPM, 42% pause reduction)</td>
-                <td className="py-3 px-4 text-emerald-400 font-semibold">Exact mathematical trajectory tracking</td>
-              </tr>
-              <tr>
-                <td className="py-3 px-4 font-semibold text-white">Exercise & Pacing Selection</td>
-                <td className="py-3 px-4 text-slate-400">Manual therapist trial-and-error</td>
-                <td className="py-3 px-4 text-teal-300 font-bold">Autonomous RL Micro-Experiments</td>
-                <td className="py-3 px-4 text-emerald-400 font-semibold">Continuous data-driven adaptation</td>
-              </tr>
-              <tr>
-                <td className="py-3 px-4 font-semibold text-white">Sensory Cue Modalities</td>
-                <td className="py-3 px-4 text-slate-400">Audio only (verbal instructions)</td>
-                <td className="py-3 px-4 text-teal-300 font-bold">Tri-Modal (Haptic 80 BPM + Visual + Audio)</td>
-                <td className="py-3 px-4 text-emerald-400 font-semibold">Sub-cortical sensory-motor entrainment</td>
-              </tr>
-              <tr>
-                <td className="py-3 px-4 font-semibold text-white">Longitudinal Memory</td>
-                <td className="py-3 px-4 text-slate-400">Paper charts and binders</td>
-                <td className="py-3 px-4 text-teal-300 font-bold">Living Patient Digital Twin</td>
-                <td className="py-3 px-4 text-emerald-400 font-semibold">Automated predictive recovery modeling</td>
-              </tr>
+              {progress ? progress.comparativeMatrix.map((row) => (
+                <tr key={row.parameter}>
+                  <td className="py-3 px-4 font-semibold text-white">{row.parameter}</td>
+                  <td className="py-3 px-4 text-slate-400">{row.traditionalBaseline}</td>
+                  <td className="py-3 px-4 text-teal-300 font-bold">{row.neuroBridgeSenseAssist}</td>
+                  <td className="py-3 px-4 text-amber-300">{row.quantifiedAdvantage}</td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={4} className="py-6 px-4 text-center text-slate-500">Run a labelled input to populate this table. No fallback metrics are shown.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
@@ -155,11 +137,11 @@ export const TherapistPortal: React.FC<TherapistPortalProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
             <span className="text-slate-400 block text-[10px] font-semibold uppercase">Target Pacing</span>
-            <span className="text-white font-bold text-sm">{digitalTwin.preferredBpm} BPM (1-2-3-4 Pulse)</span>
+            <span className="text-white font-bold text-sm">{sessionResult ? `${sessionResult.intervention.bpm} BPM (${sessionResult.intervention.hapticPattern})` : 'No active plan'}</span>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
             <span className="text-slate-400 block text-[10px] font-semibold uppercase">Haptic Wearable Protocol</span>
-            <span className="text-teal-300 font-bold text-sm">65% PWM Tactile Entrainment</span>
+            <span className="text-teal-300 font-bold text-sm">{sessionResult ? `${sessionResult.intervention.hapticIntensityPercent}% app-requested intensity` : 'No output requested'}</span>
           </div>
           <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
             <span className="text-slate-400 block text-[10px] font-semibold uppercase">Supervisory Status</span>

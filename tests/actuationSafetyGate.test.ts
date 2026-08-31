@@ -66,6 +66,25 @@ describe('evaluateActuationGate', () => {
     });
   });
 
+  it('fails closed when approval-required and autonomous flags conflict', () => {
+    const inconsistent = context({
+      actuationPermitted: true,
+      therapistApprovalRequired: true
+    });
+
+    expect(evaluateActuationGate(inconsistent, null)).toMatchObject({
+      permitted: false,
+      code: 'APPROVAL_REQUIRED'
+    });
+  });
+
+  it('does not authorize a result whose safety screen did not pass', () => {
+    expect(evaluateActuationGate(context({ passed: false, actuationPermitted: true }), null)).toMatchObject({
+      permitted: false,
+      code: 'SAFETY_VETO'
+    });
+  });
+
   it('never lets clinician approval override mandatory rest or unsafe intensity', () => {
     expect(evaluateActuationGate(context({
       actuationPermitted: false,
@@ -143,5 +162,32 @@ describe('HapticController gate and packet behavior', () => {
     vi.advanceTimersByTime(1);
     expect(pulseListener).toHaveBeenCalledTimes(2);
     controller.stopPacing();
+  });
+
+  it('stops an approval-gated cadence immediately when approval is revoked', () => {
+    vi.useFakeTimers();
+    const controller = new HapticController();
+    const writeValue = vi.fn();
+    (controller as any).bleCharacteristic = { writeValue };
+    controller.setSafetyContext(context({
+      actuationPermitted: false,
+      therapistApprovalRequired: true
+    }));
+    controller.setClinicianApproval(approval());
+
+    expect(controller.startPacing({
+      bpm: 60,
+      pattern: '1-2-3-4',
+      intensity: 60,
+      durationMs: 120,
+      active: true
+    }).permitted).toBe(true);
+    expect(controller.isPacing()).toBe(true);
+
+    controller.setClinicianApproval(null);
+
+    expect(controller.isPacing()).toBe(false);
+    const lastPayload = Array.from(writeValue.mock.calls.at(-1)?.[0] as Uint8Array);
+    expect(lastPayload[3]).toBe(0);
   });
 });

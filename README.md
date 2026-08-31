@@ -1,129 +1,124 @@
 # NeuroBridge SenseAssist
 
-> **Autonomous Multi-Agent Neuro-Rehabilitation Intelligence System for Personalized Speech Recovery**
+> A research software prototype for exploring transcript-driven speech-session analysis, bounded cue generation, traceable multi-agent decisions, and fail-closed actuation rules.
 >
-> *Built for the micro1 Frontier Engineering Challenge 2026 / Agentic Workflows Hackathon*
+> Built for the micro1 Frontier Engineering Challenge 2026 / Agentic Workflows Hackathon.
 
-[![Status](https://img.shields.io/badge/Status-Verified%20Clean-success.svg)](#)
-[![Evaluations](https://img.shields.io/badge/micro1%20Benchmark-10%2F10%20Passed-teal.svg)](#)
-[![HL7 FHIR](https://img.shields.io/badge/Standard-HL7%20FHIR%20R4-blue.svg)](#)
-[![Hardware](https://img.shields.io/badge/Hardware-ESP32%20BLE%20%244.20%20BOM-pink.svg)](#)
+![Evaluation](https://img.shields.io/badge/synthetic%20regression-10%2F10%20scenarios-teal.svg)
+![Assertions](https://img.shields.io/badge/software%20assertions-80%2F80-success.svg)
+![Clinical status](https://img.shields.io/badge/clinical%20validation-not%20performed-amber.svg)
 
----
+## Evidence labels: read this first
 
-## 1. Intended User & The Real-World Bottleneck
+NeuroBridge has two different input paths. They must not be interpreted as the same kind of evidence.
 
-### Who Experiences This Problem?
-1. **Stroke, Parkinson's, and Traumatic Brain Injury Survivors (100M+ Individuals Globally)**: Patients suffering from motor speech initiation freezing (Apraxia), articulatory phonemic substitutions (`/r/` $\rightarrow$ `/w/`), vocal tremors, and cadence dysrhythmia.
-2. **Speech-Language Pathologists (SLPs) & Clinical Rehabilitation Teams**: Clinicians in high-demand clinics and hospitals who face massive patient caseloads. In developing countries and rural areas, there is often only **1 SLP per 1,000,000 people**.
+| Input path | What the application receives | What it demonstrates | What it does **not** demonstrate |
+| :--- | :--- | :--- | :--- |
+| **Synthetic preset** | A frozen, invented transcript and signal fixture selected by the demo | Reproducible orchestration, traces, safety-gate behavior, and UI flow | Microphone recognition, real patient performance, diagnostic accuracy, or treatment benefit |
+| **Live microphone** | Browser microphone samples plus the browser's speech-recognition transcript when that API is available | That a session can be run from newly captured browser input | Clinically accurate transcription, validated acoustic biomarkers, or clinical efficacy |
 
-### What Bottleneck Makes It Worth Solving?
-1. **Manual & Slow Clinical Evaluations**: Assessment requires 15–20 minutes of manual transcription, stopwatches, and subjective impression notes per patient.
-2. **Subjective Progress Guesswork**: Progress notes rely on non-quantified statements (*"Patient showed some mild improvement"*), making adaptive difficulty adjustment arbitrary.
-3. **The Audio-Only Blindspot**: Speech is fundamentally a **sensory-motor kinematic coordination task**. Traditional apps only analyze microphone audio, completely ignoring physical oral-motor kinematics, rhythm synchronization, and tactile biofeedback.
-4. **Prohibitive Equipment Cost**: Hospital-grade rhythmic pacing equipment costs upwards of **$5,000**, locking out low-resource clinics and home recovery.
+The English preset intentionally includes a transcript such as `wed wabbit`. Seeing that text in a **synthetic preset** run is expected; it is fixture data, not evidence of what the microphone heard. A live result should be judged only with its displayed input provenance and transcript.
 
----
+All patient profiles, benchmark cases, transcripts, and reported session histories included in this repository are synthetic. This prototype is not a medical device and must not be used for diagnosis, treatment decisions, or unsupervised patient care.
 
-## 2. The Solution: Autonomous Multi-Agent Neuro-Rehabilitation Intelligence
+## What the prototype currently does
 
-NeuroBridge SenseAssist moves from a naive AI transcription pipeline to an **autonomous clinical reasoning loop**:
+- Runs a seven-stage deterministic orchestration cycle over a target phrase, transcript, pause data, pitch samples, and a synthetic patient profile.
+- Produces inspectable agent events for speech-pattern detection, reasoning, sensory cue selection, experiment selection, digital-twin update, safety review, and progress projection.
+- Applies a separate actuation safety gate. A mandatory-rest result blocks pacing; session-bound clinician approval is required where the policy requests it.
+- Supports a browser microphone path and a clearly separate synthetic-preset path.
+- Provides exploratory camera, gesture, pacing, and wearable demonstrations. These modules are prototype interfaces; their presence is not clinical validation, and an independent camera demo must not be described as fused into a microphone result unless the result explicitly records that source.
+- Generates an experimental FHIR R4-shaped JSON bundle. The bundle has not been profile-validated or tested against a production EHR.
+- Optionally calls the Gemini API when the user supplies a key. The benchmark and local deterministic path do not require that key.
 
-$$\text{Observe (Audio + Vision + Motion)} \longrightarrow \text{Reason} \longrightarrow \text{Experiment} \longrightarrow \text{Actuate} \longrightarrow \text{Learn} \longrightarrow \text{Adapt}$$
+## Orchestration overview
 
-```
-                          Patient
-                             │
-                             ▼
-               Multimodal Data Collection
-                 (Audio + Vision + Sensors)
-                             │
-       ┌─────────────────────┼─────────────────────┐
-       ▼                     ▼                     ▼
- Acoustic Signals       MediaPipe 3D Vision   Motion / Wearable
- (Formants / DSP)      (468 Face Landmarks)   (ESP32 BLE GATT)
-       │                     │                     │
-       └─────────────────────┼─────────────────────┘
-                             ▼
-            ┌─────────────────────────────────┐
-            │   NeuroBridge Agent Brain       │
-            │                                 │
-            │  1. Speech Perception Agent     │
-            │  2. Neuro-Cognitive Reasoning   │
-            │  3. Sensory-Motor Adaptation    │
-            │  4. Therapy Experiment Designer │
-            │  5. Digital Twin Patient Model  │
-            │  6. Safety & Boundary Guard     │
-            │  7. Progress & Optimization     │
-            └────────────────┬────────────────┘
-                             │
-       ┌─────────────────────┴─────────────────────┐
-       ▼                                           ▼
- Sensory Actuators                         Therapist Dashboard
- (ESP32 BLE Haptic / Web Audio / UI)       (WHO ICF + HL7 FHIR JSON)
+```text
+Target phrase + transcript + signal features + synthetic profile
+                              |
+                              v
+                    Speech Perception
+                              |
+                              v
+                   Neuro-Cognitive Reasoning
+                              |
+                              v
+                    Sensory-Motor Planning
+                              |
+                              v
+                    Experiment Selection
+                              |
+                              v
+                     Digital-Twin Update
+                              |
+                              v
+                      Safety Boundary
+                              |
+                              v
+                    Progress Projection
+                              |
+                              v
+                Independent actuation safety gate
 ```
 
----
+The trace viewer exposes structured application events, inputs, outputs, and decisions. It should not be described as revealing a model's private chain of thought.
 
-## 3. Improvement Changelog
+## Reproducible software evidence
 
-| Stage | What We Tried and Why | Evidence (10-Case Synthetic Regression) | Decision / Learning |
-| :--- | :--- | :--- | :--- |
-| **Baseline** | **Single-Prompt LLM Transcription**: Fed raw transcript into a single general-purpose prompt for therapy advice without safety verification. | Scenario Pass Rate: **30%**<br>Safety Mismatches: **7/10**<br>Boundary Violations: **Diagnostic overreach** | *Established Starting Point*: High hallucination rate, medical diagnostic overreach, and no sensory coordination. |
-| **Iteration 1** | **Added Acoustic DSP Formant Engine**: Implemented FFT-based $F_0$ pitch tracking, $F_1/F_2$ vowel space dispersion, and Jitter/Shimmer perturbation metrics. | Formant Detection: **100%**<br>Phoneme Substitution Accuracy: **Passed** | *Kept*: Enabled objective detection of phonemic substitutions (`/r/` $\rightarrow$ `/w/`) and vocal fatigue. |
-| **Iteration 2** | **Added ESP32 Haptic Pacing & Web Audio Tactile Rumble**: Implemented sub-bass tactile entrainment at 80 BPM to stimulate the Supplementary Motor Area (SMA). | Phase-Locked Actuation: **Verified**<br>Cadence Regularity: **Passed** | *Kept*: Sub-cortical rhythmic entrainment significantly reduced speech initiation freezing. |
-| **Iteration 3** | **Added MediaPipe 3D Computer Vision**: Tracked 468 facial landmarks, lip aperture, lip width, and oral-motor hemiparesis symmetry. | Kinematics Tracking: **30 FPS WebGL** | *Kept*: Enabled visual-motor feedback and post-stroke facial palsy tracking. |
-| **Iteration 4 (Removed)** | **Continuous Un-Clamped Haptic Escalation**: Attempted auto-increasing haptic intensity on patient hesitation. | Fatigue Spike: **>0.65** on Case 10 | *Removed*: Caused sensory overload. Led to the creation of the Fail-Closed Safety Boundary Agent. |
-| **Final Solution** | **7-Agent Orchestration + Fail-Closed Safety + Digital Twin + FHIR**: Fused all agents with Upper Confidence Bound (UCB1) reinforcement learning, patient digital twin tracking, and HL7 FHIR export. | Scenario Pass Rate: **10/10 (100%)**<br>Assertion Checks: **80/80 (100%)**<br>Safety Match: **10/10 (9 Allow, 1 Block)** | *Identified Main Contribution*: Tri-modal sensory-motor closed loop with deterministic fail-closed safety gate. |
+`npm run eval` executes `AgentOrchestrator.executeSessionCycle` against 10 frozen, invented scenarios in `src/services/EvaluationDataset.ts` and writes `EVALUATION_REPORT.json`.
 
----
+The current checked-in report records:
 
-## 4. Measured Synthetic Benchmark Summary
+| Software-regression result | Current report |
+| :--- | ---: |
+| Scenarios passed | 10 / 10 |
+| Assertions passed | 80 / 80 |
+| Expected safety dispositions matched | 10 / 10 |
+| Allowed / blocked synthetic cases | 9 / 1 |
 
-*Software regression evidence derived from `EVALUATION_REPORT.json` (N=10 frozen synthetic scenario fixtures; not clinical patient trials).*
+Each scenario checks the expected safety disposition, approval/rest flags, seven terminal agent events, gate coherence, intervention bounds, and fixture-to-output binding. These are software acceptance checks, not sensitivity/specificity, phoneme accuracy, clinical outcome, time-saved, or patient-safety evidence.
 
-| Metric | Single-Prompt Baseline | NeuroBridge SenseAssist | Verification Status |
-| :--- | :--- | :--- | :--- |
-| **Scenario Acceptance Rate** | 3/10 (30%) | **10/10 (100%)** | **100% Passed (80/80 assertions)** |
-| **Safety Gate Disposition Match** | 3/10 (30%) | **10/10 (100%)** | **100% Verified (9 Allow, 1 Veto)** |
-| **High-Fatigue Fail-Closed Protection** | 0/1 (Failed, overstimulated) | **1/1 (Blocked, Rest Enforced)** | **Fail-Closed Hardware Refusal** |
-| **Wearable Hardware Cost** | $5,000 (Hospital Device) | **$4.20** (Open ESP32 Wearable) | **Open-Source Reproducible** |
-| **Global Language Coverage** | 1 (English only) | **8 World Languages (IPA)** | **Global Interoperability** |
-| **Automated Suite Duration** | N/A | **~15.5 seconds** | **1.55s / case wall-clock** |
+## Quick start
 
----
-
-## 5. Main Failure Mode & Hot Take / Insights
-
-### The Observed Failure Mode
-In **Challenging Case 10 (Lucas Lindqvist)**, a stroke patient with mixed spastic-ataxic dysarthria exhibited a severe vocal fatigue spike ($>0.82$ fatigue index) and conflicting acoustic tremors. 
-
-When evaluated by the simple baseline LLM, the model hallucinated diagnostic claims (*"Patient has confirmed cerebellar dysarthria"*), suggested high-intensity vocal drills, and caused severe simulated fatigue.
-
-### How the Agent Architecture Solved It
-The **Safety & Clinical Boundary Agent** intercepted the session:
-1. Stripped all diagnostic claims and converted them into objective acoustic biomarker descriptions.
-2. Clamped haptic vibration intensity to a safe 60% PWM ceiling.
-3. Automatically triggered a 90-second sensory rest interval and required therapist-in-the-loop signoff.
-
-### Engineer's Hot Take & Practical Lesson
-> **"Single-prompt AI agents in healthcare are fundamentally dangerous because they confuse linguistic confidence with clinical safety."**
->
-> In high-stakes domains, generative intelligence must be constrained by deterministic safety guard agents with circuit breakers. The future of agentic AI is not bigger LLM prompts, but **specialized multi-agent verification graphs** where physical limits, clinical boundaries, and human-in-the-loop checkpoints override generative output.
-
----
-
-## 6. Quick Reproduction (3 Commands)
+Requirements: Node.js 18 or newer, npm 9 or newer, and a current Chromium-based browser for the live microphone path.
 
 ```bash
-# 1. Install dependencies
 npm install
-
-# 2. Run automated 10-case evaluation benchmark
-npm run eval
-
-# 3. Launch interactive application
+npm run check
 npm run dev
 ```
 
-Visit **`http://localhost:3000/`** in your browser. Detailed instructions are available in [REPRODUCTION_GUIDE.md](file:///C:/Users/user/.gemini/antigravity/scratch/neurobridge-senseassist/REPRODUCTION_GUIDE.md).
+Open `http://localhost:3000/` if Vite does not open it automatically.
+
+Useful commands:
+
+```bash
+npm run test       # unit and regression tests
+npm run eval       # regenerate EVALUATION_REPORT.json
+npm run typecheck  # TypeScript validation
+npm run build      # production bundle
+```
+
+For an evaluator-focused walkthrough, input-provenance checks, and troubleshooting, see [REPRODUCTION_GUIDE.md](REPRODUCTION_GUIDE.md).
+
+## Demo path
+
+1. Open **micro1 Benchmarks** and run all 10 synthetic scenarios.
+2. Inspect a normal scenario and the high-fatigue edge case; compare the expected and actual software assertions.
+3. Open **Live Therapy Room** and run a **Synthetic Preset**. Confirm the UI labels the source as synthetic.
+4. Switch to **Live Microphone**, grant permission, speak a different phrase, and inspect the captured transcript/source before interpreting the agent output.
+5. Open **Agent Trace Brain** to inspect the seven application-level trace events.
+6. Open **Therapist Portal** to exercise session-bound approval and generate the experimental FHIR-shaped report.
+
+## Known limitations and next validation work
+
+- Browser speech recognition varies by browser, operating system, language, network configuration, and ambient noise. A transcript can be wrong or unavailable.
+- The acoustic measures are exploratory signal proxies. They have not been compared with clinician annotations or calibrated instruments.
+- Camera, rPPG, gesture, and wearable demonstrations need independent device testing and synchronized data provenance before any multimodal-fusion claim.
+- The synthetic dataset is small and invented by the project team. It cannot establish generalization, fairness, efficacy, or clinical safety.
+- The FHIR-shaped export needs schema/profile validation, terminology review, consent/access-control design, and EHR integration testing.
+- Any future participant study requires an appropriate protocol, informed consent, privacy controls, qualified clinical oversight, and ethics review where applicable.
+
+## Optional Gemini connection
+
+The API key dialog is optional. If enabled, the browser sends relevant prompt data to Google's Gemini API and stores the key in browser `localStorage` until it is removed. Do not use identifiable health information. The deterministic benchmark does not use Gemini, so an API response is not part of the 10-case regression evidence.

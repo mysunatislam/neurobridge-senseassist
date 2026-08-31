@@ -87,10 +87,14 @@ export class VoiceAssistantService {
         this.setState('LISTENING');
       }
     } else {
-      this.setState('LISTENING');
-      setTimeout(() => {
-        this.handleUserInput('How is my pronunciation and motor cadence?');
-      }, 1800);
+      this.setState('IDLE');
+      this.addMessage({
+        id: 'voice_unavailable_' + Date.now(),
+        sender: 'assistant',
+        text: 'Browser voice recognition is unavailable. Type a command instead; no simulated voice command was inserted.',
+        timestamp: new Date().toLocaleTimeString(),
+        agenticTag: 'Input status'
+      });
     }
   }
 
@@ -104,7 +108,7 @@ export class VoiceAssistantService {
   }
 
   /**
-   * Processes hands-free voice inputs and dispatches clinical commands to the 7-Agent System.
+   * Processes voice-navigation commands. Therapy audio is captured separately.
    */
   public async handleUserInput(userText: string) {
     const userMsg: VoiceMessage = {
@@ -119,13 +123,12 @@ export class VoiceAssistantService {
     const lower = userText.toLowerCase();
 
     let responseText = '';
-    let agenticTag = 'Clinical Voice Co-Pilot';
+    let agenticTag = 'Prototype Voice Navigator';
 
-    // 1. Rhythmic Trial Initialization & Metronome Cueing
+    // 1. Open the live microphone workflow. This must never launch a fixture.
     if (lower.includes('start') || lower.includes('begin') || lower.includes('trial') || lower.includes('ready')) {
-      agenticTag = 'Sensory-Motor Adaptation Agent';
-      const bpm = this.ctx?.currentBpm ?? 80;
-      responseText = `Starting clinical trial. Synchronizing ${bpm} BPM haptic pacer. 1… 2… 3… running 7 autonomous agents now. Results will appear in the Live Therapy Room.`;
+      agenticTag = 'Live Input Navigator';
+      responseText = 'I opened the live microphone workflow. Press Record live speech, speak the target, then review the browser transcript before you run the seven stages. I did not start a synthetic preset.';
       if (this.onCommandCallback) this.onCommandCallback('START_TRIAL');
     }
     // 2. Articulatory & Phonemic Pronunciation Analysis — reads actual session data
@@ -135,10 +138,9 @@ export class VoiceAssistantService {
       if (r?.biomarkers) {
         const wpm = r.biomarkers.speakingRateWpm ?? '?';
         const rhythm = Math.round((r.biomarkers.rhythmStabilityIndex ?? 0) * 100);
-        const severity = r.phenotype?.severity ?? 'unknown';
         const phonemeErrors = r.phenotype?.phonemeErrors?.length ?? 0;
-        const wpmDelta = r.progress?.wpmImprovementPercent;
-        responseText = `Your last trial: ${wpm} words per minute, rhythm stability ${rhythm}%, classified as ${severity}. ${phonemeErrors} phoneme error${phonemeErrors !== 1 ? 's' : ''} detected. ${wpmDelta ? `That is ${wpmDelta}% faster than baseline.` : ''} ${wpm < 80 ? 'Focus on your plosive consonants — add more lip pressure on B and P sounds.' : 'Strong fluency improvement. Keep building on this.'}`;
+        const source = r.inputProvenance?.source === 'live-microphone' ? 'live microphone' : 'synthetic fixture';
+        responseText = `The latest labelled ${source} result contains a ${wpm} words-per-minute proxy, a ${rhythm}% rhythm proxy, and ${phonemeErrors} configured text substitution${phonemeErrors !== 1 ? 's' : ''}. These are prototype heuristics, not a diagnosis or measured treatment improvement.`;
       } else {
         responseText = 'No session data yet. Run a trial first — press Simulate Trial or Record Live Speech.';
       }
@@ -149,7 +151,7 @@ export class VoiceAssistantService {
       agenticTag = 'Sensory-Motor Adaptation Agent';
       const currentBpm = this.ctx?.currentBpm ?? 80;
       const newBpm = lower.includes('faster') ? Math.min(100, currentBpm + 8) : Math.max(60, currentBpm - 8);
-      responseText = `Recalibrating haptic pacer from ${currentBpm} to ${newBpm} BPM. Motor synchronization updating — this gives your articulators ${lower.includes('slow') ? 'more' : 'less'} time per phoneme.`;
+      responseText = `Requesting a change from ${currentBpm} to ${newBpm} BPM. The app-level safety and clinician-approval gate will decide whether any physical output is allowed.`;
       if (this.onCommandCallback) this.onCommandCallback('ADJUST_BPM', newBpm);
     }
     // 4. Contactless rPPG Vitals & Autonomic Stress — reads actual PulseSight data
@@ -184,7 +186,7 @@ export class VoiceAssistantService {
         const primary = r.reasoning.primaryTarget ?? 'motor planning';
         const bpm = r.intervention.bpm ?? 80;
         const modality = r.intervention.modality ?? 'combined';
-        responseText = `The Neuro-Cognitive Reasoning Agent identified the primary deficit as ${primary}. The Sensory-Motor Agent responded by setting haptic pacing to ${bpm} BPM using ${modality} stimulation to synchronize your motor speech cortex before each utterance.`;
+        responseText = `The prototype reasoning stage suggested this practice target: ${primary}. The sensory stage proposed ${bpm} BPM using ${modality}. This is a heuristic recommendation, and physical output still requires the app safety gate.`;
       } else {
         responseText = 'Run a clinical trial first so the 7 agents can generate a reasoning trajectory for me to explain.';
       }
@@ -192,8 +194,8 @@ export class VoiceAssistantService {
     }
     // 7. General Clinical Voice Support
     else {
-      agenticTag = 'Clinical Voice Co-Pilot';
-      responseText = "I'm Asha, your hands-free Speech Co-Pilot. Ask me: 'How did I do?', 'Check my vitals', 'Slow down the pacer', 'Why did you do that?', or say 'Start trial' to begin.";
+      agenticTag = 'Prototype Voice Navigator';
+      responseText = "I'm Asha, the prototype voice navigator. Ask me to open live capture, summarize the latest labelled result, show vitals, or explain the stored trace.";
     }
 
     await new Promise(r => setTimeout(r, 400));

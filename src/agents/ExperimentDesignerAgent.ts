@@ -2,11 +2,12 @@ import { AcousticBiomarkers, CommunicationPhenotype, PatientDigitalTwin, MicroEx
 
 export class ExperimentDesignerAgent {
   public name = 'Therapy Experiment Designer Agent';
-  public role = 'A/B Micro-Experimentation & Reinforcement Learning';
+  public role = 'Synthetic A/B Projection & Policy Sandbox';
   public badgeColor = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
 
   /**
-   * Designs and evaluates micro-experiments comparing baseline vs sensory-motor intervention modalities.
+   * Creates a deterministic proposal projection. It does not represent captured
+   * pre/post utterances or an empirical treatment outcome.
    */
   public conductExperiment(
     currentBiomarkers: AcousticBiomarkers,
@@ -32,17 +33,18 @@ export class ExperimentDesignerAgent {
     const deltaPauseReductionPercent = Math.round(((condA_pause - condB_pause) / condA_pause) * 100);
     const reinforcementReward = Number(((deltaAccuracy * 0.05) + (deltaPauseReductionPercent * 0.03)).toFixed(2));
 
-    const hypothesis = `Hypothesis: Multi-sensory haptic entrainment at ${digitalTwin.preferredBpm} BPM reduces motor speech initiation latency by >25% and improves segmental phonemic stability compared to un-cued spontaneous speech.`;
-    const winningCondition = deltaAccuracy > 0 ? 'Condition B (Rhythmic Sensory-Motor Stimulation)' : 'Condition A (Unassisted Speech)';
-    const learnedInsight = `Empirical Reinforcement Finding: Patient responds with +${deltaAccuracy}% articulatory accuracy and ${deltaPauseReductionPercent}% reduction in pause latency under rhythmic tactile pacing. Updating digital twin policy weights for haptic responsiveness.`;
+    const hypothesis = `Controlled-trial proposal: compare uncued speech with ${digitalTwin.preferredBpm} BPM pacing using separately captured attempts and a clinician-defined scoring protocol.`;
+    const winningCondition = deltaAccuracy > 0 ? 'Projected Condition B (Rhythmic Sensory-Motor Stimulation)' : 'Projected Condition A (Unassisted Speech)';
+    const learnedInsight = `Synthetic policy projection only: the formula estimates a ${deltaAccuracy}-point score difference and ${deltaPauseReductionPercent}% pause difference. No A/B retries were captured, so this must not be treated as an empirical finding.`;
 
     const experiment: MicroExperiment = {
       experimentId: `exp-${Date.now()}`,
+      evidenceKind: 'synthetic-projection',
       hypothesis,
       conditionA: {
         name: 'Condition A (Baseline: No Sensory Cue)',
         sensoryCue: 'None (Un-cued control)',
-        sentencesCount: 10,
+        sentencesCount: 0,
         accuracy: condA_accuracy,
         avgPauseSec: condA_pause,
         wpm: condA_wpm
@@ -50,7 +52,7 @@ export class ExperimentDesignerAgent {
       conditionB: {
         name: 'Condition B (Sensory Pacing: Haptic 80 BPM)',
         sensoryCue: `Tactile 1-2-3-4 pulse at ${digitalTwin.preferredBpm} BPM + visual guide`,
-        sentencesCount: 10,
+        sentencesCount: 0,
         accuracy: condB_accuracy,
         avgPauseSec: condB_pause,
         wpm: condB_wpm
@@ -71,9 +73,9 @@ export class ExperimentDesignerAgent {
       badgeColor: this.badgeColor,
       timestamp: new Date().toISOString().substring(11, 19),
       status: 'completed',
-      observation: `Simulated & evaluated within-session A/B trial. Condition A (Unassisted) vs Condition B (Haptic Metronome ${digitalTwin.preferredBpm} BPM).`,
-      thought: `Applying reinforcement learning comparison. Condition B demonstrated Accuracy: ${condB_accuracy}% vs A: ${condA_accuracy}%. Pause latency dropped by ${deltaPauseReductionPercent}%.`,
-      decision: `Verified winning condition: "${winningCondition}". Computed RL Policy Reward: +${reinforcementReward}. Insight dispatched to Digital Twin Agent.`,
+      observation: `No controlled A/B retry was captured. Generated a deterministic sandbox projection for unassisted versus ${digitalTwin.preferredBpm} BPM pacing.`,
+      thought: `Formula output only: projected B score ${condB_accuracy} versus A ${condA_accuracy}; projected pause difference ${deltaPauseReductionPercent}%.`,
+      decision: `Recorded "${winningCondition}" as a synthetic policy candidate with sandbox reward ${reinforcementReward}; not empirical evidence.`,
       outputData: { experiment },
       executionTimeMs
     };

@@ -6,13 +6,15 @@ interface PhonemeMouthGuideProps {
   visualCueType: 'mouth_shape' | 'finger_tap_prompt' | 'tempo_bar' | 'none';
   bpm: number;
   currentBeat: number;
+  isPacingActive: boolean;
 }
 
 export const PhonemeMouthGuide: React.FC<PhonemeMouthGuideProps> = ({
   targetPhoneme,
   visualCueType,
   bpm,
-  currentBeat
+  currentBeat,
+  isPacingActive
 }) => {
   if (visualCueType === 'none') return null;
 
@@ -22,7 +24,7 @@ export const PhonemeMouthGuide: React.FC<PhonemeMouthGuideProps> = ({
         <div className="flex items-center space-x-2">
           <Sparkles className="w-4 h-4 text-teal-400 animate-spin" />
           <span className="text-xs font-bold text-teal-300 uppercase tracking-wider">
-            Active Sensory-Motor Guidance
+            {isPacingActive ? 'Active Sensory-Motor Guidance' : 'Sensory-Motor Guidance Preview'}
           </span>
         </div>
         <span className="text-[11px] px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-mono">
@@ -36,7 +38,7 @@ export const PhonemeMouthGuide: React.FC<PhonemeMouthGuideProps> = ({
           <span className="text-[11px] text-slate-400 mb-2 font-medium">Kinetic Pacing Beat</span>
           <div className="flex space-x-2">
             {[0, 1, 2, 3].map((beat) => {
-              const isCurrent = currentBeat === beat;
+              const isCurrent = isPacingActive && currentBeat === beat;
               return (
                 <div
                   key={beat}
@@ -52,7 +54,7 @@ export const PhonemeMouthGuide: React.FC<PhonemeMouthGuideProps> = ({
             })}
           </div>
           <span className="text-[10px] text-teal-400 mt-2 font-medium">
-            {currentBeat === 0 ? '⬇ Initiate Vocalization' : 'Tactile Entrainment Pulse'}
+            {isPacingActive ? (currentBeat === 0 ? '⬇ Initiate Vocalization' : 'Tactile pacing beat') : 'Pacer is not active'}
           </span>
         </div>
 
@@ -97,7 +99,7 @@ export const PhonemeMouthGuide: React.FC<PhonemeMouthGuideProps> = ({
             </p>
           </div>
           <div className="text-[10px] text-cyan-400 bg-cyan-950/40 px-2 py-1 rounded border border-cyan-800/40">
-            Haptic Wearable: <strong>Tactile Pacing Pulse Active</strong>
+            Haptic output: <strong>{isPacingActive ? 'App-gated pacing active' : 'Inactive'}</strong>
           </div>
         </div>
       </div>

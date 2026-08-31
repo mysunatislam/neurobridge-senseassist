@@ -81,7 +81,12 @@ export class HapticController {
     this.clinicianApproval = accepted
       ? approval
       : null;
-    this.emitGateDecision();
+    const decision = this.emitGateDecision();
+    if (!decision.permitted && this.isMetronomePlaying) {
+      // Revocation must stop browser vibration and send the BLE stop packet now,
+      // not at the next scheduled beat.
+      this.stopPacing();
+    }
     return approval === null || accepted;
   }
 

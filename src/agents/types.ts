@@ -1,5 +1,3 @@
-import { PulseSightReading } from '../services/PulseSightService';
-
 export interface AcousticBiomarkers {
   speakingRateWpm: number;
   pauseCount: number;
@@ -48,6 +46,7 @@ export interface SensoryIntervention {
 
 export interface MicroExperiment {
   experimentId: string;
+  evidenceKind: 'synthetic-projection' | 'measured-controlled-trial';
   hypothesis: string;
   conditionA: {
     name: string;
@@ -118,6 +117,8 @@ export interface ClinicianApproval {
 }
 
 export interface ProgressReport {
+  evidenceKind: 'stored-synthetic-history-comparison';
+  baselineSource: string;
   assessmentTimeReductionPercent: number;
   wpmImprovementPercent: number;
   pauseReductionPercent: number;
@@ -146,15 +147,25 @@ export interface AgentTraceEvent {
   badgeColor: string;
 }
 
+export interface SessionInputProvenance {
+  /** Distinguishes a real capture from the bundled deterministic hackathon fixture. */
+  source: 'live-microphone' | 'synthetic-preset';
+  /** Identifies the exact text source supplied to the agents. */
+  transcriptSource: 'browser-speech-recognition' | 'user-corrected' | 'synthetic-fixture';
+  label: string;
+  capturedAt: string;
+  recognitionWarning?: string;
+}
+
 export interface SessionRunResult {
   /** Assigned by the application when a completed result becomes the active session. */
   sessionId?: string;
   targetPhrase: string;
   spokenTranscript: string;
   audioDurationSec: number;
+  inputProvenance: SessionInputProvenance;
   biomarkers: AcousticBiomarkers;
   phenotype: CommunicationPhenotype;
-  pulseSight: PulseSightReading;
   reasoning: {
     longitudinalComparison: string;
     cognitiveVsMotorAnalysis: string;
