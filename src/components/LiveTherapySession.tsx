@@ -581,6 +581,108 @@ export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
       {/* MediaPipe Computer Vision Kinematics Tracker */}
       <VisionKinematicsTracker />
 
+      {/* PulseSight Facial Motor Analysis Panel */}
+      <div className="rounded-2xl border border-pink-500/30 bg-gradient-to-br from-slate-900 via-[#180d1a] to-slate-900 p-5 shadow-xl">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-2">
+            <span className="w-2 h-2 rounded-full bg-pink-400 animate-pulse" />
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+              PulseSight — Facial Motor Perception
+            </h3>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/30 font-semibold">
+              Multimodal Channel 2
+            </span>
+          </div>
+          <span className="text-[10px] font-mono text-slate-500">Lip · Jaw · Oral-Motor Kinematics</span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4">
+          {[
+            {
+              label: 'Lip Symmetry',
+              value: lastSessionResult ? `${lastSessionResult.pulseSight.lipSymmetryPercent}%` : '94%',
+              unit: 'bilateral balance',
+              color: lastSessionResult && lastSessionResult.pulseSight.lipSymmetryPercent < 72
+                ? 'text-rose-400' : 'text-emerald-400',
+              baseline: 'Baseline: 94%'
+            },
+            {
+              label: 'Lip Timing Delay',
+              value: lastSessionResult ? `${lastSessionResult.pulseSight.lipTimingDelayMs}ms` : '42ms',
+              unit: 'onset-to-aperture',
+              color: lastSessionResult && lastSessionResult.pulseSight.lipTimingDelayMs > 140
+                ? 'text-rose-400' : 'text-teal-400',
+              baseline: 'Normal: <100ms'
+            },
+            {
+              label: 'Oral-Motor Coord.',
+              value: lastSessionResult ? `${lastSessionResult.pulseSight.oralMotorCoordinationIndex}%` : '88%',
+              unit: 'phoneme boundary sync',
+              color: lastSessionResult && lastSessionResult.pulseSight.oralMotorCoordinationIndex < 55
+                ? 'text-amber-400' : 'text-cyan-400',
+              baseline: 'Baseline: 88%'
+            },
+            {
+              label: 'Jaw Velocity',
+              value: lastSessionResult ? `${lastSessionResult.pulseSight.jawVelocityMs} m/s` : '0.52 m/s',
+              unit: 'articulatory speed',
+              color: 'text-purple-400',
+              baseline: 'Normal: 0.45–0.65'
+            }
+          ].map((m, i) => (
+            <div key={i} className="p-3 rounded-xl bg-slate-950/60 border border-slate-800">
+              <span className="text-[10px] text-slate-400 block">{m.label}</span>
+              <div className={`text-xl font-bold mt-1 ${m.color}`}>{m.value}</div>
+              <span className="text-[10px] text-slate-500 block">{m.unit}</span>
+              <span className="text-[10px] text-slate-600 block mt-0.5">{m.baseline}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Clinical flag from PulseSight */}
+        <div className={`p-3 rounded-xl text-xs border ${
+          lastSessionResult
+            ? 'bg-pink-500/10 border-pink-500/30 text-pink-200'
+            : 'bg-slate-900/60 border-slate-800 text-slate-400'
+        }`}>
+          <span className="font-bold text-pink-400 block mb-0.5">PulseSight Clinical Flag:</span>
+          {lastSessionResult
+            ? lastSessionResult.pulseSight.clinicalFlag
+            : 'Awaiting session — run Quick Agent Run or Full Demo to populate facial analysis'
+          }
+          {lastSessionResult && (
+            <span className="block mt-1 text-[10px] text-pink-300 font-mono">
+              Recommended intervention: <strong>{lastSessionResult.pulseSight.recommendedIntervention.replace('_', ' ')}</strong>
+              {' '}· Confidence: {Math.round(lastSessionResult.pulseSight.facialMotorConfidence * 100)}%
+            </span>
+          )}
+        </div>
+
+        {/* FingerSpeak haptic output row */}
+        <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
+          <div>
+            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">FingerSpeak — Tactile Output</span>
+            <div className="text-xs text-amber-200 mt-0.5">
+              Pattern: <strong>{lastSessionResult?.intervention.hapticPattern || '1-2-3-4'}</strong>
+              {' '}· BPM: <strong>{lastSessionResult?.intervention.bpm || selectedPatient.digitalTwin.preferredBpm}</strong>
+              {' '}· Intensity: <strong>{lastSessionResult?.intervention.hapticIntensityPercent || 65}%</strong>
+            </div>
+          </div>
+          <div className="flex items-center space-x-1">
+            {['●', '●', '●', '●'].map((dot, i) => (
+              <span
+                key={i}
+                className={`text-lg transition-colors ${
+                  isPacingActive && currentBeat === i + 1 ? 'text-amber-400' : 'text-slate-700'
+                }`}
+              >
+                {dot}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {/* Sensory Guidance Component (Mouth Guide + Beat Synchronizer) */}
       <PhonemeMouthGuide
         targetPhoneme={activeIntervention?.targetPhonemeFocus || selectedLanguage.targetPhonemes[0]}

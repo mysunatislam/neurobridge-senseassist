@@ -6,6 +6,7 @@ import { DigitalTwinAgent } from './DigitalTwinAgent';
 import { SafetyBoundaryAgent } from './SafetyBoundaryAgent';
 import { ProgressOptimizationAgent } from './ProgressOptimizationAgent';
 import { PatientDigitalTwin, SessionRunResult, AgentTraceEvent } from './types';
+import { simulatePulseSight, PulseSightReading } from '../services/PulseSightService';
 
 export class AgentOrchestrator {
   private speechPerception = new SpeechPerceptionAgent();
@@ -47,11 +48,36 @@ export class AgentOrchestrator {
     if (onTraceStep) onTraceStep(trace1, 1);
     await sleep(250);
 
-    // 2. NEURO-COGNITIVE REASONING AGENT
+    // 1b. PULSESIGHT MULTIMODAL PERCEPTION (facial-motor fusion, runs concurrently)
+    const pulseSight = simulatePulseSight(
+      phenotype.phonemeErrors.length,
+      biomarkers.initiationLatencySec,
+      biomarkers.rhythmStabilityIndex
+    );
+    // Synthesize a PulseSight trace event for the streaming panel
+    const tracePulseSight: AgentTraceEvent = {
+      agentId: 'agent-pulsesight-facial',
+      agentName: 'PulseSight — Facial Motor Perception',
+      role: 'Lip/Jaw Kinematics Analysis',
+      badgeColor: 'bg-pink-500/20 text-pink-300 border-pink-500/40',
+      timestamp: new Date().toISOString().substring(11, 19),
+      status: 'completed',
+      observation: `Lip symmetry: ${pulseSight.lipSymmetryPercent}% | Timing delay: ${pulseSight.lipTimingDelayMs}ms | Oral-motor coordination: ${pulseSight.oralMotorCoordinationIndex}%`,
+      thought: `Facial-motor confidence: ${pulseSight.facialMotorConfidence}. ${pulseSight.clinicalFlag}`,
+      decision: `Recommended modality from facial analysis: ${pulseSight.recommendedIntervention.replace('_', ' ')}`,
+      outputData: { pulseSight },
+      executionTimeMs: 18
+    };
+    traceEvents.push(tracePulseSight);
+    if (onTraceStep) onTraceStep(tracePulseSight, 1);
+    await sleep(200);
+
+    // 2. NEURO-COGNITIVE REASONING AGENT (now receives PulseSight data)
     const { reasoning, trace: trace2 } = this.neuroReasoning.reason(
       biomarkers,
       phenotype,
-      currentDigitalTwin
+      currentDigitalTwin,
+      pulseSight
     );
     traceEvents.push(trace2);
     if (onTraceStep) onTraceStep(trace2, 2);
@@ -114,6 +140,7 @@ export class AgentOrchestrator {
       audioDurationSec,
       biomarkers,
       phenotype,
+      pulseSight,
       reasoning,
       intervention,
       experiment,
@@ -124,3 +151,4 @@ export class AgentOrchestrator {
     };
   }
 }
+

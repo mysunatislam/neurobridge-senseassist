@@ -1,3 +1,5 @@
+import { PulseSightReading } from '../services/PulseSightService';
+
 export interface AcousticBiomarkers {
   speakingRateWpm: number;
   pauseCount: number;
@@ -152,6 +154,7 @@ export interface SessionRunResult {
   audioDurationSec: number;
   biomarkers: AcousticBiomarkers;
   phenotype: CommunicationPhenotype;
+  pulseSight: PulseSightReading;
   reasoning: {
     longitudinalComparison: string;
     cognitiveVsMotorAnalysis: string;
