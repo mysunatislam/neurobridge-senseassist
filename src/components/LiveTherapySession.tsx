@@ -111,31 +111,44 @@ export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
     setCurrentStepIndex(1);
     setStreamingTrace([]);
 
-    const presetAudio = audioAnalyzer.simulatePresetCase({
-      transcript: selectedLanguage.sampleSpoken,
-      durationSec: selectedPatient.audioDurationSec,
-      pauses: selectedPatient.detectedPauses,
-      pitchSamples: selectedPatient.pitchSamples,
-      rmsDb: selectedPatient.rmsEnergyDb
-    });
+    try {
+      const presetAudio = audioAnalyzer.simulatePresetCase({
+        transcript: selectedLanguage.sampleSpoken,
+        durationSec: selectedPatient.audioDurationSec,
+        pauses: selectedPatient.detectedPauses,
+        pitchSamples: selectedPatient.pitchSamples,
+        rmsDb: selectedPatient.rmsEnergyDb
+      });
 
-    const result = await agentOrchestrator.executeSessionCycle(
-      targetPhrase,
-      presetAudio.transcript,
-      presetAudio.durationSec,
-      presetAudio.pauses,
-      presetAudio.pitchSamples,
-      presetAudio.rmsDb,
-      selectedPatient.digitalTwin,
-      (event, stepIdx) => {
-        setCurrentStepIndex(stepIdx);
-        setStreamingTrace(prev => [...prev, event]);
-      }
-    );
+      const result = await agentOrchestrator.executeSessionCycle(
+        targetPhrase,
+        presetAudio.transcript,
+        presetAudio.durationSec,
+        presetAudio.pauses,
+        presetAudio.pitchSamples,
+        presetAudio.rmsDb,
+        selectedPatient.digitalTwin,
+        (event, stepIdx) => {
+          setCurrentStepIndex(stepIdx);
+          setStreamingTrace(prev => [...prev, event]);
+        }
+      );
 
-    setLastSessionResult(result);
-    setIsRunningAgents(false);
-    setStreamingTrace([]);
+      setLastSessionResult(result);
+    } catch (err) {
+      console.error('[NeuroBridge] Agent cycle failed:', err);
+      alert('Agent cycle error: ' + String(err));
+    } finally {
+      setIsRunningAgents(false);
+      setStreamingTrace([]);
+    }
+  };
+
+  const handleJudgeDemo = async () => {
+    // Full narrated judge demo: plays the magic moment scene then immediately
+    // runs the full 7-agent cycle so the results card populates
+    if (magicState === 'running' || isRunningAgents) return;
+    await handlePlayMagicMoment();
   };
 
   const handlePlayMagicMoment = async () => {
@@ -315,13 +328,23 @@ export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
             </button>
 
             <button
-              onClick={handleRunPresetSimulation}
+              onClick={handleJudgeDemo}
               disabled={isRunningAgents || magicState === 'running'}
               className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-teal-400 text-slate-950 font-bold text-xs shadow-lg shadow-amber-500/20 hover:scale-105 transition-all disabled:opacity-50"
-              title="Execute Complete 90-Second Multimodal Closed Loop"
+              title="Run full 20s closed-loop scene → then populate all 7-agent results"
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>{isRunningAgents ? 'Running 7 Agents...' : 'Run 90s Judge Demo'}</span>
+              <span>{magicState === 'running' ? `Step ${magicStep}/5 Playing...` : isRunningAgents ? 'Running 7 Agents...' : '▶ Full Demo (20s Scene + Agents)'}</span>
+            </button>
+
+            <button
+              onClick={handleRunPresetSimulation}
+              disabled={isRunningAgents || magicState === 'running'}
+              className="flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 border border-teal-500/30 font-semibold text-xs transition-all disabled:opacity-50"
+              title="Run 7 agents immediately and show results"
+            >
+              <FastForward className="w-3.5 h-3.5" />
+              <span>{isRunningAgents ? 'Running...' : 'Quick Agent Run'}</span>
             </button>
 
             <button
