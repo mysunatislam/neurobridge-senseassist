@@ -486,37 +486,37 @@ export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
             {
               color: 'text-rose-400', bg: 'bg-rose-500/5',
               agent: '① Speech Perception', input: 'Raw audio F1/F2 formants',
-              decision: '/r/ → /w/ substitution detected (Δ=3)', output: 'Error signal → Cognitive Agent'
+              decision: '/r/ → /w/ substitution detected (Δ=3)', output: 'Error signal → Reasoning Agent'
             },
             {
-              color: 'text-cyan-400', bg: 'bg-cyan-500/5',
-              agent: '② Cognitive Reasoning', input: 'Error + digital twin history',
-              decision: 'Root: Left SMA latency + tongue placement', output: 'Phenotype → Sensory Agent'
+              color: 'text-pink-400', bg: 'bg-pink-500/5',
+              agent: '① PulseSight (Vision)', input: 'Camera — lip/jaw landmarks',
+              decision: `Lip delay ${'>'}140ms + asymmetry ${'{<}'}72% confirmed`, output: 'Facial evidence → Reasoning Agent'
+            },
+            {
+              color: 'text-cyan-400', bg: 'bg-cyan-500/10 border-l-2 border-cyan-500/50',
+              agent: '② Cognitive Reasoning', input: 'Audio error + PulseSight facial features',
+              decision: 'MULTIMODAL: Motor deficit confirmed by 2 independent channels', output: 'Rehab plan → Sensory Agent'
             },
             {
               color: 'text-amber-400', bg: 'bg-amber-500/5',
-              agent: '③ Sensory Adaptation', input: 'Phenotype + UCB1 bandit scores',
-              decision: 'Tactile pacing best EV (0.82) vs visual (0.61)', output: '80 BPM packet → Safety Gate'
+              agent: '③ Sensory Adaptation', input: 'Rehab plan + UCB1 bandit history',
+              decision: 'Rhythmic tactile pacing best EV (0.82) vs visual (0.61)', output: '80 BPM haptic packet → Safety Gate'
             },
             {
               color: 'text-rose-300', bg: 'bg-rose-500/5',
-              agent: '④ Safety Guard', input: '80 BPM + fatigue 0.18',
-              decision: 'PWM 65% < 80% ceiling. Approved ✓', output: 'Cleared → HapticController'
+              agent: '④ Safety Guard', input: '80 BPM + fatigue score 0.18',
+              decision: 'PWM 65% < 80% ceiling. Fatigue gate: clear. Approved ✓', output: 'Actuated → patient retries with cue'
             },
             {
               color: 'text-purple-400', bg: 'bg-purple-500/5',
-              agent: '⑤ RL Experimenter', input: 'Post-retry delta +60.4%',
-              decision: 'UCB1 tactile arm reward ↑ 0.82', output: 'Bandit weights → Digital Twin'
-            },
-            {
-              color: 'text-emerald-400', bg: 'bg-emerald-500/5',
-              agent: '⑥ Digital Twin', input: '77% accuracy, 0.6s pause',
-              decision: 'Trajectory updated: +3.2% WPM/session trend', output: 'Progress → FHIR Exporter'
+              agent: '⑤ RL Experimenter', input: 'Post-retry accuracy delta +60.4%',
+              decision: 'UCB1 tactile arm reward ↑ 0.82', output: 'Updated bandit → Digital Twin'
             },
             {
               color: 'text-sky-400', bg: 'bg-sky-500/5',
-              agent: '⑦ FHIR Intelligence', input: 'Session bundle + ICF codes',
-              decision: 'Generated HL7® R4 CarePlan + b320/b330', output: '1 Observation + 1 CarePlan EHR'
+              agent: '⑥ Digital Twin + FHIR', input: '77% accuracy, 0.6s pause, session data',
+              decision: 'Trajectory +3.2% WPM/session. Generated HL7® R4 CarePlan', output: '1 Observation + 1 CarePlan EHR bundle'
             }
           ].map((row, i) => (
             <div key={i} className={`grid grid-cols-4 gap-2 text-[10px] border-b border-slate-800/40 px-4 py-2 ${row.bg}`}>
@@ -526,8 +526,17 @@ export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
               <span className={`${row.color} leading-tight font-semibold`}>{row.output}</span>
             </div>
           ))}
+          {/* FingerSpeak — extension layer, NOT part of main reasoning chain */}
+          <div className="px-4 py-2 bg-slate-900/40 border-t border-slate-700/40 flex items-center space-x-3 text-[10px]">
+            <span className="text-slate-600 font-bold uppercase tracking-wider shrink-0">Extension Layer →</span>
+            <span className="text-slate-500">
+              <strong className="text-slate-400">FingerSpeak</strong> — gesture-based communication for patients with severe speech limitations.
+              Not part of the main therapy loop. Enables NeuroBridge as a full multimodal assistive platform.
+            </span>
+          </div>
         </div>
       </div>
+
 
       {/* Target Phrase Box */}
       <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-xl space-y-4">
@@ -658,26 +667,20 @@ export const LiveTherapySession: React.FC<LiveTherapySessionProps> = ({
           )}
         </div>
 
-        {/* FingerSpeak haptic output row */}
-        <div className="mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between">
-          <div>
-            <span className="text-[10px] font-bold text-amber-400 uppercase tracking-wider">FingerSpeak — Tactile Output</span>
-            <div className="text-xs text-amber-200 mt-0.5">
-              Pattern: <strong>{lastSessionResult?.intervention.hapticPattern || '1-2-3-4'}</strong>
-              {' '}· BPM: <strong>{lastSessionResult?.intervention.bpm || selectedPatient.digitalTwin.preferredBpm}</strong>
-              {' '}· Intensity: <strong>{lastSessionResult?.intervention.hapticIntensityPercent || 65}%</strong>
-            </div>
+        {/* FingerSpeak — correctly framed as accessibility INPUT extension, not haptic actuator */}
+        <div className="mt-3 p-3 rounded-xl bg-slate-800/60 border border-slate-700/60">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+              FingerSpeak — Accessibility Extension
+            </span>
+            <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-slate-400 font-mono">Future Integration</span>
           </div>
-          <div className="flex items-center space-x-1">
-            {['●', '●', '●', '●'].map((dot, i) => (
-              <span
-                key={i}
-                className={`text-lg transition-colors ${
-                  isPacingActive && currentBeat === i + 1 ? 'text-amber-400' : 'text-slate-700'
-                }`}
-              >
-                {dot}
-              </span>
+          <p className="text-[10px] text-slate-400 leading-relaxed">
+            For patients with severe speech limitations, FingerSpeak provides personalized gesture-based communication (custom finger mappings → "Yes", "No", "Repeat", "Need help"). This enables NeuroBridge to serve as a full <strong className="text-slate-300">multimodal assistive platform</strong>, not just a speech rehabilitation tool.
+          </p>
+          <div className="flex flex-wrap gap-2 mt-2">
+            {['👆 Yes', '✌️ No', '🤟 Repeat', '🖐️ Need Help'].map((g, i) => (
+              <span key={i} className="text-[10px] px-2 py-0.5 rounded-md bg-slate-900 border border-slate-700 text-slate-400 font-mono">{g}</span>
             ))}
           </div>
         </div>
