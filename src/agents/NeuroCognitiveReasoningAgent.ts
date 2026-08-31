@@ -131,7 +131,7 @@ Respond with ONLY a JSON object, no markdown fences, no extra text:
       status: 'completed',
       observation: `Session: motor score ${phenotype.motorPlanningScore}, rhythm ${biomarkers.rhythmStabilityIndex}, ${biomarkers.pauseCount} pauses, WPM ${biomarkers.speakingRateWpm}.${facialSummary}`,
       thought: usedGemini
-        ? `Gemini 2.0 Flash reasoned over real biomarkers + PulseSight → ${longitudinalComparison}`
+        ? `Gemini 3.7 Flash reasoned over real biomarkers + PulseSight → ${longitudinalComparison}`
         : `Local rule engine (no API key configured) → ${longitudinalComparison}`,
       decision: `[${usedGemini ? 'GEMINI' : 'LOCAL'}] Target: "${primaryTarget}" (Confidence: ${Math.round(confidence * 100)}%)`,
       outputData: { reasoning, engine: usedGemini ? 'gemini-3.7-flash' : 'local-edge' },
