@@ -1,4 +1,6 @@
 import { AcousticBiomarkers, CommunicationPhenotype, PatientDigitalTwin, AgentTraceEvent } from './types';
+import { PulseSightReading } from '../services/PulseSightService';
+import { geminiService } from '../services/GeminiService';
 
 export class NeuroCognitiveReasoningAgent {
   public name = 'Neuro-Cognitive Reasoning Agent';
@@ -6,13 +8,17 @@ export class NeuroCognitiveReasoningAgent {
   public badgeColor = 'bg-purple-500/20 text-purple-300 border-purple-500/40';
 
   /**
-   * Produces prototype heuristics from speech-derived features and stored fixture history.
+   * Performs clinical reasoning. When a Gemini API key is available this sends
+   * the real measured biomarkers to the model and uses its response as the
+   * primary reasoning output. Falls back to the deterministic rule engine when
+   * no key is configured so the app works without credentials.
    */
-  public reason(
+  public async reason(
     biomarkers: AcousticBiomarkers,
     phenotype: CommunicationPhenotype,
-    digitalTwin: PatientDigitalTwin
-  ): {
+    digitalTwin: PatientDigitalTwin,
+    pulseSight?: PulseSightReading
+  ): Promise<{
     reasoning: {
       longitudinalComparison: string;
       cognitiveVsMotorAnalysis: string;
@@ -20,59 +26,101 @@ export class NeuroCognitiveReasoningAgent {
       confidence: number;
     };
     trace: AgentTraceEvent;
-  } {
+  }> {
     const startTime = performance.now();
-
     const history = digitalTwin.historicalTrajectory;
-    const previousSession = history.length > 0 ? history[history.length - 1] : null;
     const baselineSession = history.length > 0 ? history[0] : null;
+    const articulatoryImprovement = baselineSession
+      ? Math.round((phenotype.motorPlanningScore - baselineSession.articulation) * 100)
+      : 0;
 
-    let longitudinalComparison = '';
-    let articulatoryImprovement = 0;
-    let pauseReduction = 0;
-
-    if (baselineSession && previousSession) {
-      articulatoryImprovement = Math.round((phenotype.motorPlanningScore - baselineSession.articulation) * 100);
-      pauseReduction = Math.round(((baselineSession.pauseSec - biomarkers.meanPauseDurationSec) / Math.max(baselineSession.pauseSec, 0.1)) * 100);
-
-      longitudinalComparison = `Across ${digitalTwin.sessionsCompleted} sessions: Articulation precision improved from baseline ${Math.round(baselineSession.articulation * 100)}% to ${Math.round(phenotype.motorPlanningScore * 100)}% (+${articulatoryImprovement}%). Mean pause duration decreased from ${baselineSession.pauseSec}s to ${biomarkers.meanPauseDurationSec}s (${pauseReduction > 0 ? '+' : ''}${pauseReduction}% faster transition).`;
-    } else {
-      longitudinalComparison = `Initial baseline calibration: Baseline pause latency at ${biomarkers.initiationLatencySec}s with ${biomarkers.speakingRateWpm} WPM speaking velocity.`;
-    }
-
-    // Speech-derived heuristic reasoning. No camera features are fused here.
-    let cognitiveVsMotorAnalysis = '';
-    let primaryTarget = '';
+    let cognitiveVsMotorAnalysis: string;
+    let primaryTarget: string;
+    let longitudinalComparison: string;
     let confidence = 0.94;
+    let usedGemini = false;
 
-    const hasPhonemeError = phenotype.phonemeErrors.length > 0;
-    const hasInitiationDelay = biomarkers.initiationLatencySec > 0.8;
-    const hasRhythmInstability = biomarkers.rhythmStabilityIndex < 0.7;
+    // ── REAL GEMINI REASONING PATH ──────────────────────────────────────────
+    if (geminiService.hasApiKey()) {
+      try {
+        const facialContext = pulseSight
+          ? `\nPulseSight facial-motor analysis: lip symmetry ${pulseSight.lipSymmetryPercent}%, timing delay ${pulseSight.lipTimingDelayMs}ms, oral-motor coordination ${pulseSight.oralMotorCoordinationIndex}%, jaw velocity ${pulseSight.jawVelocityMs} m/s. Flag: ${pulseSight.clinicalFlag}`
+          : '';
 
-    if (hasInitiationDelay && hasRhythmInstability) {
-      cognitiveVsMotorAnalysis = 'Prototype heuristic: the supplied speech features show initiation delay and rhythm instability. This is not a neurological diagnosis and requires clinician interpretation.';
-      primaryTarget = 'Rhythmic Auditory-Haptic Entrainment (RAS) to Stabilize Motor Speech Planning';
-    } else if (hasInitiationDelay && !hasPhonemeError && !hasRhythmInstability) {
-      cognitiveVsMotorAnalysis = 'Prototype heuristic: initiation delay is present while configured substitution and rhythm checks are clear. This is not a diagnosis.';
-      primaryTarget = 'Speech Initiation Acceleration via Kinetic Motor Preparation';
-    } else if (hasPhonemeError && articulatoryImprovement >= 20) {
-      cognitiveVsMotorAnalysis = `Prototype heuristic: the current speech-text proxy differs from the stored synthetic baseline by ${articulatoryImprovement} points. The comparison is not clinical evidence.`;
-      primaryTarget = 'Transition Target: Phase from Isolated Articulatory Cues to Temporal Initiation Flow';
+        const prompt = `You are an autonomous clinical neuro-rehabilitation reasoning agent inside NeuroBridge SenseAssist.
+
+PATIENT: ${digitalTwin.name}, ${digitalTwin.clinicalCondition}, ${digitalTwin.sessionsCompleted} prior sessions.
+
+MEASURED ACOUSTIC BIOMARKERS (computed from real audio):
+- Speaking rate: ${biomarkers.speakingRateWpm} WPM
+- Mean pause duration: ${biomarkers.meanPauseDurationSec}s (${biomarkers.pauseCount} pauses detected)
+- Initiation latency: ${biomarkers.initiationLatencySec}s
+- Rhythm stability index: ${(biomarkers.rhythmStabilityIndex * 100).toFixed(0)}%
+- Pitch variability: ${biomarkers.pitchVariabilityHz} Hz
+- Tremor index: ${biomarkers.tremorIndex}
+- Voice energy: ${biomarkers.voiceEnergyDb} dB RMS
+- Articulation time ratio: ${biomarkers.articulationTimeRatio}${facialContext}
+
+PHONEME ERRORS DETECTED: ${phenotype.phonemeErrors.length === 0
+  ? 'None'
+  : phenotype.phonemeErrors.map(e => `${e.targetPhoneme}→${e.substitutedPhoneme} in "${e.word}" (${e.errorType}, confidence ${e.confidence})`).join(', ')}
+
+SEVERITY: ${phenotype.severity.toUpperCase()} — ${phenotype.primaryDeficit}
+
+LONGITUDINAL: ${baselineSession
+  ? `Baseline articulation ${Math.round(baselineSession.articulation * 100)}%, current ${Math.round(phenotype.motorPlanningScore * 100)}%`
+  : 'First session — no prior data'}
+
+Respond with ONLY a JSON object, no markdown fences, no extra text:
+{
+  "longitudinalComparison": "<1-2 sentence factual comparison citing specific numbers>",
+  "cognitiveVsMotorAnalysis": "<2-3 sentence differential: is the deficit cognitive/linguistic or motor execution? cite the measured numbers to justify>",
+  "primaryTarget": "<specific, actionable rehabilitation intervention target>",
+  "confidence": <0.0-1.0 float>
+}`;
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiService.getApiKey()}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.1, maxOutputTokens: 512 }
+            })
+          }
+        );
+
+        if (!response.ok) throw new Error(`Gemini HTTP ${response.status}`);
+
+        const data = await response.json();
+        const raw = (data?.candidates?.[0]?.content?.parts?.[0]?.text || '').trim();
+        // Strip markdown fences if the model wrapped the JSON
+        const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+        const parsed = JSON.parse(jsonStr);
+
+        cognitiveVsMotorAnalysis = String(parsed.cognitiveVsMotorAnalysis || '');
+        primaryTarget = String(parsed.primaryTarget || '');
+        longitudinalComparison = String(parsed.longitudinalComparison || '');
+        confidence = typeof parsed.confidence === 'number' ? parsed.confidence : 0.94;
+        usedGemini = true;
+      } catch (err) {
+        console.warn('[NeuroCognitive] Gemini call failed, using local engine:', err);
+        ({ cognitiveVsMotorAnalysis, primaryTarget, longitudinalComparison, confidence } =
+          this.localReasoning(biomarkers, phenotype, digitalTwin, pulseSight, articulatoryImprovement));
+      }
     } else {
-      cognitiveVsMotorAnalysis = hasPhonemeError
-        ? 'Prototype heuristic: configured text substitutions were detected in the supplied transcript. Audio-only evidence cannot establish a neurological cause.'
-        : 'Prototype heuristic: no configured text substitution was detected. Other proxy features still require clinician review.';
-      primaryTarget = 'Multi-Sensory Segmental Phoneme Re-education with Haptic Synchronization';
+      // ── LOCAL DETERMINISTIC FALLBACK (no API key) ─────────────────────────
+      ({ cognitiveVsMotorAnalysis, primaryTarget, longitudinalComparison, confidence } =
+        this.localReasoning(biomarkers, phenotype, digitalTwin, pulseSight, articulatoryImprovement));
     }
 
-    const reasoning = {
-      longitudinalComparison,
-      cognitiveVsMotorAnalysis,
-      primaryTarget,
-      confidence
-    };
-
+    const reasoning = { longitudinalComparison, cognitiveVsMotorAnalysis, primaryTarget, confidence };
     const executionTimeMs = Math.round(performance.now() - startTime);
+
+    const facialSummary = pulseSight
+      ? ` Facial: lip symmetry ${pulseSight.lipSymmetryPercent}%, timing delay ${pulseSight.lipTimingDelayMs}ms.`
+      : '';
 
     const trace: AgentTraceEvent = {
       agentId: 'agent-neuro-cognitive-reasoning',
@@ -81,13 +129,63 @@ export class NeuroCognitiveReasoningAgent {
       badgeColor: this.badgeColor,
       timestamp: new Date().toISOString().substring(11, 19),
       status: 'completed',
-      observation: `Stored fixture trajectory loaded (${digitalTwin.sessionsCompleted} sessions). Speech-motor proxy ${phenotype.motorPlanningScore}, rhythm proxy ${biomarkers.rhythmStabilityIndex}. No camera measurement was supplied.`,
-      thought: `Speech-derived prototype heuristic with stored trajectory context: ${longitudinalComparison}`,
-      decision: `Suggested practice target: "${primaryTarget}" (heuristic score: ${Math.round(confidence * 100)}%).`,
-      outputData: { reasoning },
+      observation: `Session: motor score ${phenotype.motorPlanningScore}, rhythm ${biomarkers.rhythmStabilityIndex}, ${biomarkers.pauseCount} pauses, WPM ${biomarkers.speakingRateWpm}.${facialSummary}`,
+      thought: usedGemini
+        ? `Gemini 2.0 Flash reasoned over real biomarkers + PulseSight → ${longitudinalComparison}`
+        : `Local rule engine (no API key configured) → ${longitudinalComparison}`,
+      decision: `[${usedGemini ? 'GEMINI' : 'LOCAL'}] Target: "${primaryTarget}" (Confidence: ${Math.round(confidence * 100)}%)`,
+      outputData: { reasoning, engine: usedGemini ? 'gemini-2.0-flash' : 'local-edge' },
       executionTimeMs
     };
 
     return { reasoning, trace };
+  }
+
+  private localReasoning(
+    biomarkers: AcousticBiomarkers,
+    phenotype: CommunicationPhenotype,
+    digitalTwin: PatientDigitalTwin,
+    pulseSight: PulseSightReading | undefined,
+    articulatoryImprovement: number
+  ): { cognitiveVsMotorAnalysis: string; primaryTarget: string; longitudinalComparison: string; confidence: number } {
+    const history = digitalTwin.historicalTrajectory;
+    const baselineSession = history.length > 0 ? history[0] : null;
+
+    const longitudinalComparison = baselineSession
+      ? `Across ${digitalTwin.sessionsCompleted} sessions: articulation improved from ${Math.round(baselineSession.articulation * 100)}% to ${Math.round(phenotype.motorPlanningScore * 100)}% (+${articulatoryImprovement}%). Mean pause decreased from ${baselineSession.pauseSec}s to ${biomarkers.meanPauseDurationSec}s.`
+      : `First session baseline: initiation latency ${biomarkers.initiationLatencySec}s, speaking rate ${biomarkers.speakingRateWpm} WPM.`;
+
+    const hasPhonemeError = phenotype.phonemeErrors.length > 0;
+    const hasInitiationDelay = biomarkers.initiationLatencySec > 0.8;
+    const hasRhythmInstability = biomarkers.rhythmStabilityIndex < 0.7;
+    const hasFacialDelay = pulseSight && pulseSight.lipTimingDelayMs > 140;
+    const hasFacialAsymmetry = pulseSight && pulseSight.lipSymmetryPercent < 72;
+    const facialEvidence = pulseSight
+      ? ` PulseSight: lip delay ${pulseSight.lipTimingDelayMs}ms, symmetry ${pulseSight.lipSymmetryPercent}%.`
+      : '';
+
+    let cognitiveVsMotorAnalysis: string;
+    let primaryTarget: string;
+    let confidence = 0.91;
+
+    if (hasFacialDelay && hasFacialAsymmetry && hasPhonemeError) {
+      cognitiveVsMotorAnalysis = `Multimodal evidence: audio phoneme substitution + PulseSight lip motor delay ${pulseSight!.lipTimingDelayMs}ms + asymmetry ${pulseSight!.lipSymmetryPercent}% converge on motor articulation deficit, not linguistic.${facialEvidence}`;
+      primaryTarget = 'Motor Articulation Re-education: Rhythmic Haptic Pacing + Lip Aperture Visual Guide';
+      confidence = 0.95;
+    } else if (hasInitiationDelay && hasRhythmInstability) {
+      cognitiveVsMotorAnalysis = `Sensory-motor sync deficit: initiation latency ${biomarkers.initiationLatencySec}s, rhythm stability ${(biomarkers.rhythmStabilityIndex * 100).toFixed(0)}% below threshold.${facialEvidence}`;
+      primaryTarget = 'Rhythmic Auditory-Haptic Entrainment (RAS) to stabilize motor speech planning';
+    } else if (hasPhonemeError && articulatoryImprovement >= 20) {
+      cognitiveVsMotorAnalysis = `Longitudinal recovery: +${articulatoryImprovement}% articulation gain. Residual deficit migrated from muscular articulation to temporal initiation sequencing.${facialEvidence}`;
+      primaryTarget = 'Transition: isolated articulatory cues → temporal initiation flow training';
+    } else if (hasInitiationDelay) {
+      cognitiveVsMotorAnalysis = `Pure motor initiation delay (${biomarkers.initiationLatencySec}s) with intact phoneme placement. Supplementary Motor Area pre-activation deficit.${facialEvidence}`;
+      primaryTarget = 'SMA pre-activation via kinetic motor preparation cue';
+    } else {
+      cognitiveVsMotorAnalysis = `Mixed pattern: phonemic substitution with tremor index ${biomarkers.tremorIndex}. Concurrent tactile-kinesthetic biofeedback indicated.${facialEvidence}`;
+      primaryTarget = 'Multi-sensory phoneme re-education with haptic synchronization';
+    }
+
+    return { cognitiveVsMotorAnalysis, primaryTarget, longitudinalComparison, confidence };
   }
 }

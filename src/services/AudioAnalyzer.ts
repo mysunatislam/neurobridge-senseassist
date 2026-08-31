@@ -6,8 +6,14 @@ export interface AudioAnalysisResult {
   rmsDb: number;
   waveformSamples: number[];
   signalSource: 'live-microphone' | 'synthetic-preset';
-  transcriptSource: 'browser-speech-recognition' | 'synthetic-fixture' | 'unavailable';
+  transcriptSource: 'browser-speech-recognition' | 'gemini-audio-transcription' | 'synthetic-fixture' | 'unavailable';
   recognitionWarning?: string;
+  /** The exact encoded microphone recording produced by MediaRecorder. */
+  audioBlob?: Blob;
+  /** The recorder-provided MIME type for audioBlob (for example audio/webm;codecs=opus). */
+  audioMimeType?: string;
+  /** Explains why encoded audio is absent while acoustic analysis may still be available. */
+  audioCaptureWarning?: string;
 }
 
 export class AudioAnalyzer {
@@ -15,6 +21,10 @@ export class AudioAnalyzer {
   private analyser: AnalyserNode | null = null;
   private micStream: MediaStream | null = null;
   private recognition: any = null;
+  private mediaRecorder: MediaRecorder | null = null;
+  private mediaRecorderChunks: Blob[] = [];
+  private mediaRecorderMimeType = '';
+  private audioCaptureWarning: string | null = null;
   private isRecording = false;
   private recordedChunks: Float32Array[] = [];
   private startTime = 0;
@@ -33,6 +43,12 @@ export class AudioAnalyzer {
     onDataUpdate?: (frequencyData: Uint8Array, rmsDb: number) => void,
     languageCode = 'en-US'
   ): Promise<boolean> {
+    // Finish any abandoned capture before clearing its callbacks/chunks. This
+    // prevents a late MediaRecorder dataavailable event from contaminating the
+    // next patient's recording.
+    this.stopSpeechRecognition(true);
+    await this.releaseCaptureResources();
+
     // Reset all per-capture state before requesting permission so a denied second
     // recording can never leak transcript/features from the previous one.
     this.isRecording = false;
@@ -48,6 +64,10 @@ export class AudioAnalyzer {
     this.lastFeatureSampleTime = 0;
     this.microphoneAvailable = false;
     this.recognition = null;
+    this.mediaRecorder = null;
+    this.mediaRecorderChunks = [];
+    this.mediaRecorderMimeType = '';
+    this.audioCaptureWarning = null;
 
     try {
       this.audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -61,6 +81,8 @@ export class AudioAnalyzer {
       this.startTime = performance.now();
       this.lastSoundTime = this.startTime;
       this.microphoneAvailable = true;
+
+      this.startMediaRecorder(this.micStream);
 
       // Initialize Speech Recognition if supported
       const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -148,22 +170,17 @@ export class AudioAnalyzer {
       this.isRecording = false;
       this.microphoneAvailable = false;
       this.recognitionWarning = err instanceof Error ? err.message : String(err);
-      if (this.micStream) {
-        this.micStream.getTracks().forEach((track) => track.stop());
-        this.micStream = null;
-      }
-      if (this.audioCtx && this.audioCtx.state !== 'closed') {
-        try {
-          await this.audioCtx.close();
-        } catch (e) {}
-      }
+      this.stopSpeechRecognition(true);
+      await this.releaseCaptureResources();
       return false;
     }
   }
 
   public async stopRecording(): Promise<AudioAnalysisResult> {
     this.isRecording = false;
-    const durationSec = Number(((performance.now() - this.startTime) / 1000).toFixed(2));
+    const durationSec = this.startTime > 0
+      ? Number(((performance.now() - this.startTime) / 1000).toFixed(2))
+      : 0;
 
     if (this.recognition) {
       try {
@@ -173,14 +190,18 @@ export class AudioAnalyzer {
       await new Promise((resolve) => setTimeout(resolve, 180));
     }
 
-    if (this.micStream) {
-      this.micStream.getTracks().forEach((track) => track.stop());
-    }
-    if (this.audioCtx && this.audioCtx.state !== 'closed') {
-      try {
-        await this.audioCtx.close();
-      } catch (e) {}
-    }
+    // MediaRecorder emits its final dataavailable event before stop. Await that
+    // event before stopping the stream so the returned Blob is the real capture.
+    await this.stopMediaRecorderSafely();
+
+    const audioMimeType = this.mediaRecorderMimeType
+      || this.mediaRecorderChunks.find((chunk) => Boolean(chunk.type))?.type
+      || '';
+    const audioBlob = this.mediaRecorderChunks.length > 0
+      ? new Blob(this.mediaRecorderChunks, audioMimeType ? { type: audioMimeType } : undefined)
+      : undefined;
+
+    await this.releaseCaptureResources();
 
     const finalText = this.accumulatedTranscript.trim();
     const interimText = this.interimTranscript.trim();
@@ -203,8 +224,31 @@ export class AudioAnalyzer {
       waveformSamples,
       signalSource: 'live-microphone',
       transcriptSource: transcript ? 'browser-speech-recognition' : 'unavailable',
-      recognitionWarning: this.recognitionWarning || undefined
+      recognitionWarning: this.recognitionWarning || undefined,
+      audioBlob,
+      audioMimeType: audioBlob && audioMimeType ? audioMimeType : undefined,
+      audioCaptureWarning: this.audioCaptureWarning || undefined
     };
+  }
+
+  /**
+   * Abandons an in-progress capture and releases every browser resource without
+   * returning or retaining patient audio. Safe to call repeatedly (for example
+   * during React unmount or a patient/context switch).
+   */
+  public async cancelRecording(): Promise<void> {
+    this.isRecording = false;
+
+    if (this.recognition) {
+      this.stopSpeechRecognition(true);
+    }
+
+    await this.releaseCaptureResources();
+    this.mediaRecorderChunks = [];
+    this.mediaRecorderMimeType = '';
+    this.audioCaptureWarning = null;
+    this.accumulatedTranscript = '';
+    this.interimTranscript = '';
   }
 
   public simulatePresetCase(preset: {
@@ -275,5 +319,102 @@ export class AudioAnalyzer {
     return Array.from({ length: 40 }, (_, index) =>
       Number((Math.sin(index * (meanPitch / 500)) * 0.55).toFixed(4))
     );
+  }
+
+  private startMediaRecorder(stream: MediaStream): void {
+    if (typeof MediaRecorder === 'undefined') {
+      this.audioCaptureWarning = 'This browser does not support MediaRecorder, so no encoded audio is available for optional cloud transcription.';
+      return;
+    }
+
+    try {
+      const preferredTypes = [
+        'audio/webm;codecs=opus',
+        'audio/webm',
+        'audio/ogg;codecs=opus',
+        'audio/mp4'
+      ];
+      const supportedType = typeof MediaRecorder.isTypeSupported === 'function'
+        ? preferredTypes.find((type) => MediaRecorder.isTypeSupported(type))
+        : undefined;
+      const recorder = supportedType
+        ? new MediaRecorder(stream, { mimeType: supportedType })
+        : new MediaRecorder(stream);
+
+      this.mediaRecorder = recorder;
+      this.mediaRecorderMimeType = recorder.mimeType || supportedType || '';
+      recorder.addEventListener('dataavailable', (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) {
+          this.mediaRecorderChunks.push(event.data);
+        }
+      });
+      recorder.addEventListener('error', (event: Event) => {
+        const recorderError = (event as Event & { error?: DOMException }).error;
+        this.audioCaptureWarning = `Encoded microphone capture failed: ${recorderError?.message || 'MediaRecorder error'}`;
+      });
+      recorder.start();
+    } catch (error) {
+      this.mediaRecorder = null;
+      this.audioCaptureWarning = `Encoded microphone capture is unavailable: ${error instanceof Error ? error.message : String(error)}`;
+    }
+  }
+
+  private async stopMediaRecorderSafely(): Promise<void> {
+    const recorder = this.mediaRecorder;
+    if (!recorder || recorder.state === 'inactive') return;
+
+    await new Promise<void>((resolve) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeoutId);
+        resolve();
+      };
+      const timeoutId = setTimeout(finish, 1500);
+      recorder.addEventListener('stop', finish, { once: true });
+      recorder.addEventListener('error', finish, { once: true });
+
+      try {
+        recorder.stop();
+      } catch (error) {
+        this.audioCaptureWarning = `Encoded microphone capture could not be finalized: ${error instanceof Error ? error.message : String(error)}`;
+        finish();
+      }
+    });
+  }
+
+  private async releaseCaptureResources(): Promise<void> {
+    await this.stopMediaRecorderSafely();
+
+    if (this.micStream) {
+      this.micStream.getTracks().forEach((track) => track.stop());
+    }
+    if (this.audioCtx && this.audioCtx.state !== 'closed') {
+      try {
+        await this.audioCtx.close();
+      } catch (e) {}
+    }
+
+    this.micStream = null;
+    this.audioCtx = null;
+    this.analyser = null;
+    this.mediaRecorder = null;
+    this.recognition = null;
+  }
+
+  private stopSpeechRecognition(preferAbort: boolean): void {
+    if (!this.recognition) return;
+
+    try {
+      if (preferAbort && typeof this.recognition.abort === 'function') {
+        this.recognition.abort();
+      } else if (typeof this.recognition.stop === 'function') {
+        this.recognition.stop();
+      }
+    } catch (error) {
+      // Recognition may already be inactive. Resource cleanup must remain
+      // idempotent during unmounts and rapid patient/context changes.
+    }
   }
 }

@@ -140,11 +140,11 @@ export function buildCaseAssertions(
       'The high-fatigue edge case is expected to request rest; routine cases are not.'
     ),
     assertion(
-      'seven-agent-trace',
-      'Seven unique agent trace events',
-      7,
+      'eight-agent-trace',
+      'Eight unique agent trace events (7 clinical + PulseSight)',
+      8,
       uniqueAgentCount,
-      `Received ${runResult.traceEvents.length} total trace event(s).`
+      `Received ${runResult.traceEvents.length} total trace event(s). Now includes PulseSight facial-motor perception as step 1b.`
     ),
     assertion(
       'trace-terminal-state',

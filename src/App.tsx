@@ -32,6 +32,8 @@ export function App() {
   const [isTourOpen, setIsTourOpen] = useState(false);
   const [isPacingActive, setIsPacingActive] = useState(false);
   const [currentBeat, setCurrentBeat] = useState(0);
+  const [liveCaptureRequestToken, setLiveCaptureRequestToken] = useState(0);
+  const [isLiveCaptureActive, setIsLiveCaptureActive] = useState(false);
 
   // Singletons
   const audioAnalyzer = useMemo(() => new AudioAnalyzer(), []);
@@ -108,7 +110,7 @@ export function App() {
     }
   };
 
-  const handleTriggerLiveDemoTrial = async () => {
+  const handleTriggerSyntheticDemo = async () => {
     setActiveTab('session');
     beginNewTrial();
     const presetAudio = audioAnalyzer.simulatePresetCase({
@@ -249,6 +251,9 @@ export function App() {
             onStopPacing={handleStopPacing}
             actuationDecision={actuationDecision}
             currentBeat={currentBeat}
+            liveCaptureRequestToken={liveCaptureRequestToken}
+            onLiveCaptureStateChange={setIsLiveCaptureActive}
+            onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
           />
         )}
 
@@ -347,15 +352,17 @@ export function App() {
         isOpen={isTourOpen}
         onClose={() => setIsTourOpen(false)}
         onSelectTab={(tab) => setActiveTab(tab)}
-        onTriggerTrial={handleTriggerLiveDemoTrial}
+        onTriggerTrial={handleTriggerSyntheticDemo}
         onTriggerPacing={handleTriggerPacing}
       />
 
       {/* Floating Asha Voice Assistant Orb — wired to live session data */}
       <SiriVoiceAgentOrb
+        onRunSyntheticDemo={handleTriggerSyntheticDemo}
         onStartTrial={() => {
           beginNewTrial();
           setActiveTab('session');
+          setLiveCaptureRequestToken((token) => token + 1);
         }}
         onAdjustBpm={(bpm) => {
           handleRequestPacing({
@@ -373,6 +380,7 @@ export function App() {
         currentHrBpm={null}
         currentHrvMs={null}
         stressIndex={null}
+        isLiveCaptureActive={isLiveCaptureActive}
       />
     </div>
   );

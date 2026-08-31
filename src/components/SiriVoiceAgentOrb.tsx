@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Mic, MicOff, Volume2, Sparkles, X, Activity, Heart, ShieldCheck, Brain, Zap } from 'lucide-react';
+import { Mic, MicOff, Volume2, Sparkles, X, Activity, Heart, ShieldCheck, Brain, Zap, Play } from 'lucide-react';
 import { voiceAssistantService, VoiceAgentState, VoiceMessage } from '../services/VoiceAssistantService';
 
 interface SiriVoiceAgentOrbProps {
   onStartTrial?: () => void;
+  onRunSyntheticDemo?: () => void;
   onAdjustBpm?: (bpm: number) => void;
   onCheckVitals?: () => void;
   onTriggerRest?: () => void;
@@ -13,10 +14,12 @@ interface SiriVoiceAgentOrbProps {
   currentHrvMs?: number | null;
   currentBpm?: number;
   stressIndex?: number | null;
+  isLiveCaptureActive?: boolean;
 }
 
 export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
   onStartTrial,
+  onRunSyntheticDemo,
   onAdjustBpm,
   onCheckVitals,
   onTriggerRest,
@@ -24,7 +27,8 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
   currentHrBpm,
   currentHrvMs,
   currentBpm,
-  stressIndex
+  stressIndex,
+  isLiveCaptureActive = false
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [state, setState] = useState<VoiceAgentState>('IDLE');
@@ -52,6 +56,10 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
   }, [lastSessionResult, currentHrBpm, currentHrvMs, currentBpm, stressIndex]);
 
   useEffect(() => {
+    voiceAssistantService.setLiveCaptureLock(isLiveCaptureActive);
+  }, [isLiveCaptureActive]);
+
+  useEffect(() => {
     voiceAssistantService.setCallbacks(
       (newState) => setState(newState),
       (newMsg) => {
@@ -60,14 +68,16 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
       },
       (cmd, params) => {
         if (cmd === 'START_TRIAL' && onStartTrial) onStartTrial();
+        if (cmd === 'RUN_SYNTHETIC_DEMO' && onRunSyntheticDemo) onRunSyntheticDemo();
         if (cmd === 'ADJUST_BPM' && onAdjustBpm) onAdjustBpm(params || 72);
         if (cmd === 'CHECK_VITALS' && onCheckVitals) onCheckVitals();
         if (cmd === 'TRIGGER_REST' && onTriggerRest) onTriggerRest();
       }
     );
-  }, [onStartTrial, onAdjustBpm, onCheckVitals, onTriggerRest]);
+  }, [onStartTrial, onRunSyntheticDemo, onAdjustBpm, onCheckVitals, onTriggerRest]);
 
   const handleToggleMic = () => {
+    if (isLiveCaptureActive) return;
     if (state === 'LISTENING') {
       voiceAssistantService.stopListening();
     } else {
@@ -77,7 +87,7 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
 
   const handleSendText = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!inputText.trim()) return;
+    if (isLiveCaptureActive || !inputText.trim()) return;
     const text = inputText;
     setInputText('');
     voiceAssistantService.handleUserInput(text);
@@ -117,13 +127,26 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
           </div>
 
           {/* Quick Voice Command Chips */}
-          <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 text-[10px] font-medium text-slate-300">
+          {isLiveCaptureActive && (
+            <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 px-3 py-2 text-[10px] text-cyan-200">
+              Asha voice output is paused while patient speech is being captured, preventing the assistant from contaminating the recording.
+            </div>
+          )}
+
+          <div className={`flex items-center space-x-1.5 overflow-x-auto pb-1 text-[10px] font-medium text-slate-300 ${isLiveCaptureActive ? 'pointer-events-none opacity-40' : ''}`}>
             <button
               onClick={() => voiceAssistantService.handleUserInput('Start speech motor trial')}
               className="px-2.5 py-1 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 whitespace-nowrap flex items-center space-x-1"
             >
               <Zap className="w-3 h-3 text-amber-400" />
               <span>Start Trial</span>
+            </button>
+            <button
+              onClick={() => voiceAssistantService.handleUserInput('Run synthetic demo')}
+              className="px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 whitespace-nowrap flex items-center space-x-1"
+            >
+              <Play className="w-3 h-3 text-amber-400" />
+              <span>Synthetic Demo</span>
             </button>
             <button
               onClick={() => voiceAssistantService.handleUserInput('Analyze my pronunciation and vowel space')}
@@ -223,11 +246,13 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
               placeholder="Ask Asha or speak..."
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
+              disabled={isLiveCaptureActive}
               className="flex-1 text-xs bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500"
             />
             <button
               type="button"
               onClick={handleToggleMic}
+              disabled={isLiveCaptureActive}
               className={`p-2 rounded-xl border transition-all ${
                 state === 'LISTENING'
                   ? 'bg-rose-500 text-white border-rose-400 animate-pulse'
@@ -258,11 +283,15 @@ export const SiriVoiceAgentOrb: React.FC<SiriVoiceAgentOrbProps> = ({
 
         <button
           onClick={() => {
+            if (isLiveCaptureActive) return;
             if (!isOpen) setIsOpen(true);
             handleToggleMic();
           }}
+          disabled={isLiveCaptureActive}
           className={`relative group flex items-center justify-center w-14 h-14 rounded-full transition-all duration-300 shadow-2xl focus:outline-none ${
-            state === 'LISTENING'
+            isLiveCaptureActive
+              ? 'cursor-not-allowed bg-slate-700 opacity-60 shadow-none'
+              : state === 'LISTENING'
               ? 'bg-gradient-to-r from-rose-500 via-purple-500 to-teal-400 scale-110 shadow-rose-500/50'
               : state === 'SPEAKING'
               ? 'bg-gradient-to-r from-purple-600 via-pink-500 to-cyan-400 shadow-purple-500/50 animate-pulse'

@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.0.0",
-  "generatedAt": "2026-08-31T10:03:33.176Z",
+  "generatedAt": "2026-08-31T12:09:02.479Z",
   "benchmarkKind": "synthetic-scenario-regression",
   "disclaimer": "Software regression evidence only. Synthetic fixtures are not clinical validation, diagnostic accuracy evidence, or a substitute for supervised testing.",
   "dataset": {
@@ -22,8 +22,8 @@
     "safetyDispositionMatchRatePct": 100,
     "actualAllowedCases": 9,
     "actualBlockedCases": 1,
-    "totalExecutionTimeMs": 15540,
-    "meanCaseExecutionTimeMs": 1554
+    "totalExecutionTimeMs": 15706,
+    "meanCaseExecutionTimeMs": 1571
   },
   "cases": [
     {
@@ -46,8 +46,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.41,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 80,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -81,18 +81,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -122,7 +122,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1575
+      "executionTimeMs": 1578
     },
     {
       "id": "SYN-02",
@@ -144,8 +144,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.43,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 68,
         "hapticIntensityPercent": 45,
         "modality": "combined",
@@ -179,18 +179,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -220,7 +220,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1563
+      "executionTimeMs": 1572
     },
     {
       "id": "SYN-03",
@@ -242,8 +242,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.37,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 72,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -277,18 +277,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -318,7 +318,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1534
+      "executionTimeMs": 1583
     },
     {
       "id": "SYN-04",
@@ -340,8 +340,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.31,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 76,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -375,18 +375,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -416,7 +416,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1547
+      "executionTimeMs": 1559
     },
     {
       "id": "SYN-05",
@@ -438,8 +438,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.37,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 84,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -473,18 +473,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -514,7 +514,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1554
+      "executionTimeMs": 1560
     },
     {
       "id": "SYN-06",
@@ -536,8 +536,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.41,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 80,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -571,18 +571,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -612,7 +612,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1552
+      "executionTimeMs": 1573
     },
     {
       "id": "SYN-07",
@@ -634,8 +634,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.34,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 76,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -669,18 +669,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -732,8 +732,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.4,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 72,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -767,18 +767,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -808,7 +808,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1569
+      "executionTimeMs": 1570
     },
     {
       "id": "SYN-09",
@@ -830,8 +830,8 @@
         "fatigueRisk": "low",
         "fatigueIndex": 0.28,
         "safetyMessages": [],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 68,
         "hapticIntensityPercent": 45,
         "modality": "combined",
@@ -865,18 +865,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -906,7 +906,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1548
+      "executionTimeMs": 1572
     },
     {
       "id": "SYN-10",
@@ -930,8 +930,8 @@
         "safetyMessages": [
           "Fatigue crossed the actuator rest threshold. A mandatory 90-second recovery interval is required."
         ],
-        "traceEventCount": 7,
-        "uniqueAgentCount": 7,
+        "traceEventCount": 8,
+        "uniqueAgentCount": 8,
         "prescribedBpm": 64,
         "hapticIntensityPercent": 70,
         "modality": "haptic",
@@ -965,18 +965,18 @@
           "detail": "The high-fatigue edge case is expected to request rest; routine cases are not."
         },
         {
-          "id": "seven-agent-trace",
-          "label": "Seven unique agent trace events",
-          "expected": 7,
-          "actual": 7,
+          "id": "eight-agent-trace",
+          "label": "Eight unique agent trace events (7 clinical + PulseSight)",
+          "expected": 8,
+          "actual": 8,
           "passed": true,
-          "detail": "Received 7 total trace event(s)."
+          "detail": "Received 8 total trace event(s). Now includes PulseSight facial-motor perception as step 1b."
         },
         {
           "id": "trace-terminal-state",
           "label": "All trace events reached a terminal state",
-          "expected": 7,
-          "actual": 7,
+          "expected": 8,
+          "actual": 8,
           "passed": true,
           "detail": "Terminal states for this deterministic pipeline are completed or warning."
         },
@@ -1006,7 +1006,7 @@
         }
       ],
       "passed": true,
-      "executionTimeMs": 1532
+      "executionTimeMs": 1577
     }
   ]
 }

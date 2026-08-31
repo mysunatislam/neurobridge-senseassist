@@ -1,3 +1,5 @@
+import { PulseSightReading } from '../services/PulseSightService';
+
 export interface AcousticBiomarkers {
   speakingRateWpm: number;
   pauseCount: number;
@@ -151,7 +153,7 @@ export interface SessionInputProvenance {
   /** Distinguishes a real capture from the bundled deterministic hackathon fixture. */
   source: 'live-microphone' | 'synthetic-preset';
   /** Identifies the exact text source supplied to the agents. */
-  transcriptSource: 'browser-speech-recognition' | 'user-corrected' | 'synthetic-fixture';
+  transcriptSource: 'browser-speech-recognition' | 'gemini-audio-transcription-reviewed' | 'user-corrected' | 'synthetic-fixture';
   label: string;
   capturedAt: string;
   recognitionWarning?: string;
@@ -166,6 +168,7 @@ export interface SessionRunResult {
   inputProvenance: SessionInputProvenance;
   biomarkers: AcousticBiomarkers;
   phenotype: CommunicationPhenotype;
+  pulseSight: PulseSightReading;
   reasoning: {
     longitudinalComparison: string;
     cognitiveVsMotorAnalysis: string;

@@ -10,6 +10,29 @@ interface VisionKinematicsTrackerProps {
   onKinematicsUpdate?: (biomarkers: VisualKinematicBiomarkers) => void;
 }
 
+const createEmptyBiomarkers = (): VisualKinematicBiomarkers => ({
+  lipApertureMm: null,
+  lipWidthMm: null,
+  lipRoundingIndex: null,
+  facialSymmetryPercent: null,
+  jawOpeningVelocityMmS: null,
+  articulatoryGropingIndex: null,
+  headYawDeg: null,
+  headPitchDeg: null,
+  headRollDeg: null,
+  posturalStabilityScore: null,
+  gazeDirection: 'CENTER',
+  fixationStabilityPct: null,
+  blinkRatePerMin: null,
+  cognitiveGazeAversion: false,
+  handGestureActive: false,
+  gestureCadenceBpm: null,
+  handSpeechSyncIndex: null,
+  handCoordinates: { x: 0, y: 0 },
+  isFaceDetected: false,
+  landmarksCount: 0
+});
+
 export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = ({
   onKinematicsUpdate
 }) => {
@@ -21,33 +44,13 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
   const [isWebcamActive, setIsWebcamActive] = useState(false);
 
   // Real Biomarkers State from MediaPipe
-  const [biomarkers, setBiomarkers] = useState<VisualKinematicBiomarkers>({
-    lipApertureMm: 0,
-    lipWidthMm: 0,
-    lipRoundingIndex: 0,
-    facialSymmetryPercent: 0,
-    jawOpeningVelocityMmS: 0,
-    articulatoryGropingIndex: 0,
-    headYawDeg: 0,
-    headPitchDeg: 0,
-    headRollDeg: 0,
-    posturalStabilityScore: 0,
-    gazeDirection: 'CENTER',
-    fixationStabilityPct: 0,
-    blinkRatePerMin: 0,
-    cognitiveGazeAversion: false,
-    handGestureActive: false,
-    gestureCadenceBpm: 0,
-    handSpeechSyncIndex: 0,
-    handCoordinates: { x: 0, y: 0 },
-    isFaceDetected: false,
-    landmarksCount: 0
-  });
+  const [biomarkers, setBiomarkers] = useState<VisualKinematicBiomarkers>(createEmptyBiomarkers);
 
   const handleToggleWebcam = async () => {
     if (isWebcamActive) {
       mediaPipeVisionService.stopTracking();
       setIsWebcamActive(false);
+      setBiomarkers(createEmptyBiomarkers());
     } else {
       if (videoRef.current && canvasRef.current) {
         const ok = await mediaPipeVisionService.startWebcamTracking(
@@ -77,10 +80,10 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
           <Scan className="w-5 h-5 text-teal-400" />
           <div>
             <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              Computer Vision &amp; Kinematics Neural Engine
+              Computer Vision &amp; Kinematics Neural Engine <span className="text-teal-300">· Prototype</span>
             </h3>
             <span className="text-[10px] text-slate-400">
-              Live MediaPipe 468 Mesh &bull; PulseSight POS rPPG &bull; FingerSpeak TensorFlow.js AAC
+              Live MediaPipe landmarks &bull; Experimental PulseSight POS rPPG &bull; FingerSpeak TensorFlow.js AAC
             </span>
           </div>
         </div>
@@ -89,6 +92,7 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
         <div className="flex items-center space-x-1.5 p-1 rounded-xl bg-slate-950 border border-slate-800 self-start lg:self-auto">
           <button
             onClick={() => setVisionMode('kinematics')}
+            title="Live MediaPipe geometry and camera-relative 3D pose proxies"
             className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center space-x-1.5 ${
               visionMode === 'kinematics'
                 ? 'bg-teal-500 text-slate-950 font-bold shadow-md shadow-teal-500/20'
@@ -140,7 +144,7 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
                 </div>
                 <h4 className="text-sm font-bold text-white">Enable Camera to Track Real Face &amp; Lips</h4>
                 <p className="text-xs text-slate-400 max-w-xs">
-                  Runs MediaPipe FaceLandmarker on your webcam to track actual lip aperture, symmetry, and head posture in real time.
+                  Runs MediaPipe FaceLandmarker on your webcam to estimate lip geometry and camera-relative head pose in real time.
                 </p>
                 <button
                   onClick={handleToggleWebcam}
@@ -154,7 +158,7 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
             {isWebcamActive && (
               <div className="absolute top-3 left-3 flex items-center space-x-2 bg-slate-950/80 px-2.5 py-1 rounded-lg border border-slate-800 text-[10px] font-mono text-teal-300 z-10">
                 <span className="w-2 h-2 rounded-full bg-teal-400 animate-ping" />
-                <span>{biomarkers.isFaceDetected ? 'Face Mesh 468 Tracking' : 'Looking for face…'}</span>
+                <span>{biomarkers.isFaceDetected ? `${biomarkers.landmarksCount}-point face landmarks` : 'Looking for face…'}</span>
               </div>
             )}
           </div>
@@ -164,79 +168,107 @@ export const VisionKinematicsTracker: React.FC<VisionKinematicsTrackerProps> = (
             <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
               <div className="flex justify-between items-center border-b border-slate-800/80 pb-1.5">
                 <span className="text-[10px] font-bold text-teal-400 uppercase tracking-wider">
-                  Real Oral-Motor Lip Kinematics
+                  Landmark-Derived Oral-Motor Estimates
                 </span>
-                <span className="text-[10px] text-slate-400 font-mono">Calibrated (mm)</span>
+                <span className="text-[10px] text-slate-400 font-mono">Assumed 63 mm IPD scale</span>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Vertical Lip Aperture</span>
                   <span className="text-lg font-bold text-teal-300 font-mono">
-                    {biomarkers.isFaceDetected ? `${biomarkers.lipApertureMm || 12.4} mm` : '--'}
+                    {biomarkers.lipApertureMm !== null ? `${biomarkers.lipApertureMm.toFixed(1)} mm*` : '--'}
                   </span>
-                  <span className="text-[9px] text-slate-500 block">Formant F1 Height</span>
+                  <span className="text-[9px] text-slate-500 block">Landmark-distance estimate</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Oral-Motor Symmetry</span>
                   <span className="text-lg font-bold text-emerald-400 font-mono">
-                    {biomarkers.isFaceDetected ? `${biomarkers.facialSymmetryPercent || 86}%` : '--'}
+                    {biomarkers.facialSymmetryPercent !== null ? `${biomarkers.facialSymmetryPercent}%` : '--'}
                   </span>
-                  <span className="text-[9px] text-slate-500 block">Bilateral Balance</span>
+                  <span className="text-[9px] text-slate-500 block">Landmark-distance ratio</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Jaw Velocity</span>
                   <span className="text-lg font-bold text-cyan-300 font-mono">
-                    {biomarkers.isFaceDetected ? `${((biomarkers.jawOpeningVelocityMmS || 420) / 1000).toFixed(2)} m/s` : '--'}
+                    {biomarkers.jawOpeningVelocityMmS !== null ? `${biomarkers.jawOpeningVelocityMmS.toFixed(1)} mm/s` : '--'}
                   </span>
-                  <span className="text-[9px] text-slate-500 block">Articulatory Speed</span>
+                  <span className="text-[9px] text-slate-500 block">Frame-to-frame aperture change</span>
                 </div>
                 <div className="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Asymmetry Index</span>
                   <span className="text-lg font-bold text-purple-300 font-mono">
-                    {biomarkers.isFaceDetected ? `${(1 - (biomarkers.facialSymmetryPercent || 86) / 100).toFixed(2)}` : '--'}
+                    {biomarkers.facialSymmetryPercent !== null ? `${(1 - biomarkers.facialSymmetryPercent / 100).toFixed(2)}` : '--'}
                   </span>
-                  <span className="text-[9px] text-slate-500 block">CN VII Paresis Index</span>
+                  <span className="text-[9px] text-slate-500 block">1 − symmetry ratio (proxy)</span>
                 </div>
               </div>
+              <p className="text-[9px] leading-relaxed text-slate-500">
+                * Millimetre estimates assume a 63 mm adult interpupillary distance; they are not individually calibrated or diagnostic.
+              </p>
             </div>
 
             <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2">
               <div className="flex justify-between items-center border-b border-slate-800/80 pb-1.5">
                 <span className="text-[10px] font-bold text-sky-400 uppercase tracking-wider flex items-center space-x-1">
                   <Compass className="w-3.5 h-3.5" />
-                  <span>3D Cervical Posture Angles</span>
+                  <span>Camera-Relative Head-Pose Estimates</span>
                 </span>
                 <span className="text-[10px] font-mono text-sky-300 font-bold">
-                  {biomarkers.isFaceDetected ? `Stability: ${biomarkers.posturalStabilityScore}%` : '--'}
+                  {biomarkers.posturalStabilityScore !== null ? `Pose stability proxy: ${biomarkers.posturalStabilityScore}%` : 'Calibrating…'}
                 </span>
               </div>
               <div className="grid grid-cols-3 gap-2 text-center text-xs">
                 <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Yaw</span>
                   <span className="font-mono font-bold text-sky-300">
-                    {biomarkers.isFaceDetected ? `${biomarkers.headYawDeg}°` : '--'}
+                    {biomarkers.headYawDeg !== null ? `${biomarkers.headYawDeg}°` : '--'}
                   </span>
                 </div>
                 <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Pitch</span>
                   <span className="font-mono font-bold text-sky-300">
-                    {biomarkers.isFaceDetected ? `${biomarkers.headPitchDeg}°` : '--'}
+                    {biomarkers.headPitchDeg !== null ? `${biomarkers.headPitchDeg}°` : '--'}
                   </span>
                 </div>
                 <div className="p-2 rounded-lg bg-slate-900 border border-slate-800">
                   <span className="text-[9px] text-slate-400 uppercase block font-mono">Roll</span>
                   <span className="font-mono font-bold text-sky-300">
-                    {biomarkers.isFaceDetected ? `${biomarkers.headRollDeg}°` : '--'}
+                    {biomarkers.headRollDeg !== null ? `${biomarkers.headRollDeg}°` : '--'}
                   </span>
                 </div>
               </div>
+              <p className="text-[9px] leading-relaxed text-slate-500">
+                Angles and stability are landmark heuristics, not calibrated cervical measurements.
+              </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between text-xs font-mono">
-              <span className="text-slate-400">Speech-Hand Sync:</span>
-              <span className="text-amber-400 font-bold">
-                {biomarkers.handGestureActive ? 'Active (80 BPM Pacer)' : 'Resting'}
-              </span>
+            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2 text-[10px] font-mono">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400">Blink-rate estimate:</span>
+                <span className="text-cyan-300 font-bold text-right">
+                  {biomarkers.blinkRatePerMin !== null
+                    ? `${biomarkers.blinkRatePerMin} / min`
+                    : biomarkers.isFaceDetected ? 'Calibrating (10 s min)' : 'Unavailable'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400">Hand-motion cadence:</span>
+                <span className="text-amber-300 font-bold text-right">
+                  {!biomarkers.handGestureActive
+                    ? 'No hand detected'
+                    : biomarkers.gestureCadenceBpm !== null
+                      ? `${biomarkers.gestureCadenceBpm} movements/min (estimate)`
+                      : 'Repeat movement to estimate'}
+                </span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400">Eye-fixation stability:</span>
+                <span className="text-slate-500 font-bold text-right">Unavailable — no eye-gaze model</span>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-slate-400">Speech-hand sync:</span>
+                <span className="text-slate-500 font-bold text-right">Unavailable — no synchronized speech clock</span>
+              </div>
             </div>
 
             <button

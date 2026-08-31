@@ -5,10 +5,12 @@ import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Eye,
   Globe,
   HeartPulse,
   ShieldAlert,
   Sparkles,
+  Radio,
   X
 } from 'lucide-react';
 
@@ -130,6 +132,55 @@ export const GlobalPitchModal: React.FC<GlobalPitchModalProps> = ({ isOpen, onCl
           <p className="text-[11px] text-amber-300 font-mono">
             Never interpret fixture text as something the participant said. Verify the result's source first.
           </p>
+        </div>
+      )
+    },
+    {
+      badge: 'RESTORED SHOWCASE EXPERIENCE',
+      title: 'Magic Storyboard, Full Demo, Quick Run, and Asha',
+      icon: Sparkles,
+      color: 'text-purple-400',
+      content: (
+        <div className="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-purple-950/30 border border-purple-500/30">
+              <span className="font-bold text-purple-300 block">Magic Demo</span>
+              <p className="mt-1 text-slate-400">A five-step scripted visual walkthrough that never overwrites live evidence.</p>
+            </div>
+            <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/30">
+              <span className="font-bold text-amber-300 block">Full Demo</span>
+              <p className="mt-1 text-slate-400">Runs the scene, then sends the labelled fixture through all seven actual software stages.</p>
+            </div>
+            <div className="p-3 rounded-xl bg-teal-950/30 border border-teal-500/30">
+              <span className="font-bold text-teal-300 block">Asha + Quick Run</span>
+              <p className="mt-1 text-slate-400">Explicit “synthetic demo” commands launch the fixture; generic “start trial” opens live capture.</p>
+            </div>
+          </div>
+          <p className="text-[11px] text-amber-300 font-mono">Every showcase surface is labelled SCRIPTED SYNTHETIC DEMO.</p>
+        </div>
+      )
+    },
+    {
+      badge: 'MULTIMODAL EXTENSIONS',
+      title: 'Vision, PulseSight, FingerSpeak, and ESP32 Remain Available',
+      icon: Eye,
+      color: 'text-pink-400',
+      content: (
+        <div className="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed">
+          <div className="grid grid-cols-2 gap-3 text-xs">
+            {[
+              ['MediaPipe vision', 'Face and articulatory visualization playground'],
+              ['PulseSight rPPG', 'Experimental camera-derived vitals module'],
+              ['FingerSpeak AAC', 'Gesture-based accessibility interaction'],
+              ['ESP32 wearable', 'Web Bluetooth pacing prototype behind the app gate']
+            ].map(([name, description]) => (
+              <div key={name} className="p-3 rounded-xl bg-slate-950/80 border border-pink-500/20">
+                <span className="font-bold text-pink-300 block">{name}</span>
+                <p className="mt-1 text-slate-400">{description}</p>
+              </div>
+            ))}
+          </div>
+          <p className="flex items-center gap-2 text-[11px] text-cyan-300 font-mono"><Radio className="w-3.5 h-3.5" /> These modules are preserved but do not silently become speech-pipeline measurements.</p>
         </div>
       )
     },

@@ -5,7 +5,7 @@ interface JudgeGuidedTourProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectTab: (tab: string) => void;
-  onTriggerTrial: () => void;
+  onTriggerTrial: () => Promise<void>;
   onTriggerPacing: () => void;
 }
 
@@ -17,7 +17,18 @@ export const JudgeGuidedTour: React.FC<JudgeGuidedTourProps> = ({
   onTriggerPacing
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [isActionRunning, setIsActionRunning] = useState(false);
+  const [trialReady, setTrialReady] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setCurrentStep(0);
+      setIsActionRunning(false);
+      setTrialReady(false);
+      setActionError(null);
+    }
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -26,10 +37,10 @@ export const JudgeGuidedTour: React.FC<JudgeGuidedTourProps> = ({
       title: 'Step 1: Audio Scenario Ingestion',
       tab: 'session',
       description: 'Run the disclosed synthetic preset or use the microphone to inspect temporal audio features and transcript substitutions. Webcam modules are exploratory and are not silently fused into the score.',
-      actionLabel: 'Execute Live Trial',
-      action: () => {
+      actionLabel: 'Run Labelled Synthetic Scenario',
+      action: async () => {
         onSelectTab('session');
-        onTriggerTrial();
+        await onTriggerTrial();
       }
     },
     {
@@ -71,16 +82,36 @@ export const JudgeGuidedTour: React.FC<JudgeGuidedTourProps> = ({
     }
   ];
 
-  const handleNext = () => {
+  const executeAction = async (stepIndex: number): Promise<boolean> => {
+    setIsActionRunning(true);
+    setActionError(null);
+    try {
+      await tourSteps[stepIndex].action();
+      if (stepIndex === 0) setTrialReady(true);
+      return true;
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'The guided action did not complete.');
+      return false;
+    } finally {
+      setIsActionRunning(false);
+    }
+  };
+
+  const handleNext = async () => {
+    if (currentStep === 0 && !trialReady) {
+      const completed = await executeAction(0);
+      if (!completed) return;
+    }
     const nextStep = Math.min(tourSteps.length - 1, currentStep + 1);
     setCurrentStep(nextStep);
-    tourSteps[nextStep].action();
+    await executeAction(nextStep);
   };
 
   const handlePrev = () => {
     const prevStep = Math.max(0, currentStep - 1);
     setCurrentStep(prevStep);
-    tourSteps[prevStep].action();
+    onSelectTab(tourSteps[prevStep].tab);
+    setActionError(null);
   };
 
   const stepInfo = tourSteps[currentStep];
@@ -112,12 +143,19 @@ export const JudgeGuidedTour: React.FC<JudgeGuidedTourProps> = ({
         <p className="text-xs text-slate-300 leading-relaxed">{stepInfo.description}</p>
 
         <button
-          onClick={stepInfo.action}
+          onClick={() => void executeAction(currentStep)}
+          disabled={isActionRunning}
           className="w-full py-2 px-3 rounded-xl bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/40 text-xs font-semibold flex items-center justify-center space-x-1.5 transition-colors"
         >
-          <Play className="w-3.5 h-3.5 fill-current" />
-          <span>{stepInfo.actionLabel}</span>
+          {isActionRunning ? <Sparkles className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5 fill-current" />}
+          <span>{isActionRunning ? 'Waiting for this action to finish…' : stepInfo.actionLabel}</span>
         </button>
+
+        {actionError && (
+          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-[11px] text-rose-200">
+            {actionError}
+          </div>
+        )}
 
         <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
           <button
@@ -138,8 +176,8 @@ export const JudgeGuidedTour: React.FC<JudgeGuidedTourProps> = ({
             ))}
           </div>
           <button
-            onClick={handleNext}
-            disabled={currentStep === tourSteps.length - 1}
+            onClick={() => void handleNext()}
+            disabled={currentStep === tourSteps.length - 1 || isActionRunning}
             className="text-xs text-teal-400 hover:text-teal-300 font-bold disabled:opacity-30"
           >
             Next Step &rarr;

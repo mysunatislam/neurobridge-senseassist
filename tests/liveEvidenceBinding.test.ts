@@ -36,9 +36,11 @@ describe('live evidence binding', () => {
     expect(result.spokenTranscript).toBe(target);
     expect(result.inputProvenance).toEqual(provenance);
     expect(result.phenotype.phonemeErrors).toEqual([]);
-    expect(result.traceEvents).toHaveLength(7);
-    expect(new Set(result.traceEvents.map((event) => event.agentId)).size).toBe(7);
-    expect(result.traceEvents.some((event) => event.agentId.includes('pulsesight'))).toBe(false);
+    // 7 named agents + PulseSight facial perception = 8 trace events
+    expect(result.traceEvents).toHaveLength(8);
+    expect(new Set(result.traceEvents.map((event) => event.agentId)).size).toBe(8);
+    // PulseSight is now a real pipeline step, not scripted demo output
+    expect(result.traceEvents.some((event) => event.agentId.includes('pulsesight'))).toBe(true);
   });
 
   it('contains no scripted impaired transcript or fabricated retry gain in the live-results component', () => {

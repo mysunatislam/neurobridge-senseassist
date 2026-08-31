@@ -188,7 +188,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
         <div className="flex items-center justify-between pt-2 border-t border-slate-800">
           <div className="flex items-center space-x-1.5 text-[10px] text-slate-400">
             <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
-            <span>Stored in browser localStorage (Plaintext). Cloud mode transmits session transcripts &amp; acoustic features to Gemini API.</span>
+            <span>Stored in browser localStorage (plaintext). Cloud mode transmits session text/features; captured audio is sent only after the separate per-recording consent action.</span>
           </div>
 
           <div className="flex space-x-2">

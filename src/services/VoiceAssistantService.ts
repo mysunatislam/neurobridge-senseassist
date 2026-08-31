@@ -27,9 +27,21 @@ export class VoiceAssistantService {
   private onMessageCallback: ((message: VoiceMessage) => void) | null = null;
   private onCommandCallback: ((command: string, params?: any) => void) | null = null;
   private ctx: AshaLiveContext | null = null;
+  private liveCaptureLocked = false;
 
   public injectContext(ctx: AshaLiveContext) {
     this.ctx = ctx;
+  }
+
+  public setLiveCaptureLock(locked: boolean) {
+    this.liveCaptureLocked = locked;
+    if (locked) {
+      this.stopListening();
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      this.setState('IDLE');
+    }
   }
 
   constructor() {
@@ -80,6 +92,7 @@ export class VoiceAssistantService {
   }
 
   public startListening() {
+    if (this.liveCaptureLocked) return;
     if (this.recognition && this.state !== 'LISTENING' && this.state !== 'SPEAKING') {
       try {
         this.recognition.start();
@@ -111,6 +124,7 @@ export class VoiceAssistantService {
    * Processes voice-navigation commands. Therapy audio is captured separately.
    */
   public async handleUserInput(userText: string) {
+    if (this.liveCaptureLocked) return;
     const userMsg: VoiceMessage = {
       id: 'msg_' + Date.now(),
       sender: 'user',
@@ -125,8 +139,14 @@ export class VoiceAssistantService {
     let responseText = '';
     let agenticTag = 'Prototype Voice Navigator';
 
-    // 1. Open the live microphone workflow. This must never launch a fixture.
-    if (lower.includes('start') || lower.includes('begin') || lower.includes('trial') || lower.includes('ready')) {
+    // 1a. An explicitly requested demo may run the labelled synthetic fixture.
+    if (lower.includes('synthetic demo') || lower.includes('run demo') || lower.includes('full demo') || lower.includes('showcase')) {
+      agenticTag = 'Synthetic Showcase Navigator';
+      responseText = 'Running the labelled synthetic showcase through the actual seven-stage software pipeline. This is fixture evidence, not microphone or patient evidence.';
+      if (this.onCommandCallback) this.onCommandCallback('RUN_SYNTHETIC_DEMO');
+    }
+    // 1b. Generic trial language opens live capture and never launches a fixture.
+    else if (lower.includes('start') || lower.includes('begin') || lower.includes('trial') || lower.includes('ready')) {
       agenticTag = 'Live Input Navigator';
       responseText = 'I opened the live microphone workflow. Press Record live speech, speak the target, then review the browser transcript before you run the seven stages. I did not start a synthetic preset.';
       if (this.onCommandCallback) this.onCommandCallback('START_TRIAL');
@@ -212,7 +232,7 @@ export class VoiceAssistantService {
   }
 
   public speak(text: string, onComplete?: () => void) {
-    if (!text || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    if (this.liveCaptureLocked || !text || typeof window === 'undefined' || !('speechSynthesis' in window)) {
       this.setState('IDLE');
       if (onComplete) onComplete();
       return;

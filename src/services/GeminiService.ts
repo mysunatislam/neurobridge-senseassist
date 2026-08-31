@@ -4,9 +4,26 @@ export interface GeminiClinicalInsight {
   customSensoryProtocol: string;
 }
 
+export interface GeminiAudioTranscript {
+  transcript: string;
+  source: 'gemini-audio-transcription';
+  model: 'gemini-3.7-flash';
+  audioMimeType: string;
+  audioSizeBytes: number;
+  clinicianReviewRequired: true;
+  limitations: string;
+}
+
 export type EngineTier = 'local_edge_free' | 'cloud_gemini_free';
 
 export class GeminiService {
+  private static readonly AUDIO_TRANSCRIPTION_MODEL = 'gemini-3.7-flash' as const;
+  private static readonly INLINE_REQUEST_LIMIT_BYTES = 20 * 1024 * 1024;
+  // Base64 expands bytes by roughly 4/3. Keep enough room for the prompt and
+  // JSON envelope so the complete inline generateContent request stays <20 MB.
+  private static readonly MAX_INLINE_AUDIO_BYTES = Math.floor(
+    (GeminiService.INLINE_REQUEST_LIMIT_BYTES - 64 * 1024) * 3 / 4
+  );
   private apiKey: string = '';
   private activeTier: EngineTier = 'local_edge_free';
 
@@ -61,6 +78,91 @@ export class GeminiService {
   }
 
   /**
+   * Explicit cloud fallback for a real microphone capture that browser speech
+   * recognition could not transcribe. This never substitutes fixture text and
+   * never runs implicitly: callers must present the result for human review.
+   */
+  public async transcribeCapturedAudio(
+    audioBlob: Blob,
+    mimeType = audioBlob.type,
+    languageCode = 'en-US'
+  ): Promise<GeminiAudioTranscript> {
+    if (!this.hasApiKey()) {
+      throw new Error('Gemini audio transcription requires a configured Google AI Studio API key.');
+    }
+    if (!(audioBlob instanceof Blob) || audioBlob.size === 0) {
+      throw new Error('Gemini audio transcription requires a non-empty captured microphone Blob.');
+    }
+    if (audioBlob.size > GeminiService.MAX_INLINE_AUDIO_BYTES) {
+      throw new Error(
+        `Captured audio is too large for Gemini inline transcription (${audioBlob.size} bytes). `
+        + `Keep the recording below ${GeminiService.MAX_INLINE_AUDIO_BYTES} bytes so the encoded request remains under 20 MB.`
+      );
+    }
+
+    const cleanMimeType = mimeType.trim().toLowerCase();
+    if (!cleanMimeType || !cleanMimeType.startsWith('audio/')) {
+      throw new Error('Captured audio is missing a valid recorder-provided audio MIME type.');
+    }
+
+    const audioBase64 = await this.blobToBase64(audioBlob);
+    const prompt = `Transcribe the attached microphone recording verbatim in ${languageCode}.
+The speaker may be an older adult recovering from a neurological event and may have dysarthria, aphasia, apraxia of speech, weak voice, pauses, repetitions, or atypical articulation.
+Do not guess from a therapy target phrase and do not normalize the speech into what you expect the speaker intended.
+Preserve audible words, repetitions, and false starts. Mark genuinely unintelligible spans as [unclear].
+Return only the candidate transcript, with no diagnosis, score, explanation, or quotation marks.`;
+    const approximateRequestBytes = audioBase64.length + prompt.length + 4096;
+    if (approximateRequestBytes >= GeminiService.INLINE_REQUEST_LIMIT_BYTES) {
+      throw new Error('Encoded audio exceeds Gemini\'s 20 MB inline request limit. Record a shorter sample and try again.');
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GeminiService.AUDIO_TRANSCRIPTION_MODEL}:generateContent?key=${encodeURIComponent(this.apiKey)}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            role: 'user',
+            parts: [
+              { text: prompt },
+              { inlineData: { mimeType: cleanMimeType, data: audioBase64 } }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0,
+            maxOutputTokens: 512
+          }
+        })
+      }
+    );
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const apiMessage = data?.error?.message || `HTTP ${response.status}`;
+      throw new Error(`Gemini audio transcription failed: ${apiMessage}`);
+    }
+
+    const transcript = (data?.candidates?.[0]?.content?.parts || [])
+      .map((part: { text?: unknown }) => typeof part.text === 'string' ? part.text : '')
+      .join('')
+      .trim();
+    if (!transcript) {
+      throw new Error('Gemini returned no candidate transcript for the captured audio.');
+    }
+
+    return {
+      transcript,
+      source: 'gemini-audio-transcription',
+      model: GeminiService.AUDIO_TRANSCRIPTION_MODEL,
+      audioMimeType: cleanMimeType,
+      audioSizeBytes: audioBlob.size,
+      clinicianReviewRequired: true,
+      limitations: 'Cloud-generated candidate from captured audio; errors remain possible for dysarthric, aphasic, weak, accented, or noisy speech. A patient or clinician must review and correct it before any downstream agent run.'
+    };
+  }
+
+  /**
    * Tests a free Google AI Studio Gemini API key with a live low-latency ping.
    */
   public async testApiKey(keyToTest: string): Promise<{ success: boolean; latencyMs: number; message: string }> {
@@ -72,7 +174,7 @@ export class GeminiService {
 
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cleanKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${cleanKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -86,7 +188,7 @@ export class GeminiService {
       const elapsed = Math.round(performance.now() - start);
 
       if (response.ok) {
-        return { success: true, latencyMs: elapsed, message: `Free Tier Active! Live Gemini 1.5 Flash responded in ${elapsed}ms.` };
+        return { success: true, latencyMs: elapsed, message: `Gemini 3.7 Flash responded in ${elapsed}ms. Account quota and pricing still depend on Google AI Studio.` };
       } else {
         const errJson = await response.json().catch(() => ({}));
         return { success: false, latencyMs: elapsed, message: `Error ${response.status}: ${errJson.error?.message || 'Authentication failed'}` };
@@ -128,7 +230,7 @@ Provide a structured clinical neuro-rehabilitation insight:
 Ensure strictly assistive clinical phrasing adhering to clinical boundaries.`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${this.apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.7-flash:generateContent?key=${this.apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -176,6 +278,33 @@ Ensure strictly assistive clinical phrasing adhering to clinical boundaries.`;
       neuroPathologyHypothesis: `Motor Planning Delay: Speech motor cortex coordination bottleneck during initial consonant clustering.`,
       customSensoryProtocol: `Tactile Metronome 80 BPM (ERM vibration) + Visual lip contour tracking.`
     };
+  }
+
+  private async blobToBase64(blob: Blob): Promise<string> {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+    const chunks: string[] = [];
+    const chunkSize = 12 * 1024;
+
+    for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+      const end = Math.min(offset + chunkSize, bytes.length);
+      let encoded = '';
+      for (let i = offset; i < end; i += 3) {
+        const a = bytes[i];
+        const hasB = i + 1 < bytes.length;
+        const hasC = i + 2 < bytes.length;
+        const b = hasB ? bytes[i + 1] : 0;
+        const c = hasC ? bytes[i + 2] : 0;
+        const triple = (a << 16) | (b << 8) | c;
+        encoded += alphabet[(triple >> 18) & 63];
+        encoded += alphabet[(triple >> 12) & 63];
+        encoded += hasB ? alphabet[(triple >> 6) & 63] : '=';
+        encoded += hasC ? alphabet[triple & 63] : '=';
+      }
+      chunks.push(encoded);
+    }
+
+    return chunks.join('');
   }
 }
 
